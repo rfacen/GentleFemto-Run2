@@ -1,4 +1,4 @@
-# GentleFemto
+# GentleFemto for RUN 2
 
 This repository contains software to compute correlation functions from experimental data USED IN RUN 2 and theory using CATS
 

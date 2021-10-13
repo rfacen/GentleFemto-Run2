@@ -1,6 +1,6 @@
 # GentleFemto
 
-This repository contains software to compute correlation functions from experimental data and theory using CATS
+This repository contains software to compute correlation functions from experimental data USED IN RUN 2 and theory using CATS
 
 Befor the installation make sure
 - to have ROOT6 installed (you can use the version that comes with AliROOT just do not enter the environment, see below for workaround) 

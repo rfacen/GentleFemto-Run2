@@ -4,6 +4,7 @@
 #include "DLM_Source.h"
 #include "DLM_Potentials.h"
 #include "DLM_CkModels.h"
+#include "DLM_Ck.h"
 #include "DLM_CkDecomposition.h"
 #include "DLM_Fitters.h"
 
@@ -97,7 +98,7 @@ void FitPPVariations(const unsigned& NumIter, int imTBin, int system,
 
   std::cout << "SYSTEM: " << system << std::endl;
 
-  //Setup the input vales for the Lambda parameters & Specific to the system  
+  //Setup the input vales for the Lambda parameters & Specific to the system
   if (system == 0) {
     CalibBaseDir += "~/cernbox/SystematicsAndCalib/pPbRun2_MB/";
     SigmaFileName += "Sample3_MeV_compact.root";
@@ -183,7 +184,7 @@ void FitPPVariations(const unsigned& NumIter, int imTBin, int system,
   // Secondary Omegas = N*0.0086  / N(1+0.0086+1/3+1/6)
   // etc.
 
-  //Calculate the Lambda Parameters and their variations 
+  //Calculate the Lambda Parameters and their variations
 
   std::vector<Particle> Proton;  // 1) variation of the Prim Fraction 2) variation of the Secondary Comp.
   std::vector<Particle> Lambda;  // 1) variation of Lambda/Sigma Ratio, 2) variation of Xi0/Xim Ratio
@@ -793,4 +794,3 @@ int main(int argc, char *argv[]) {
                   atoi(argv[5]), argv[6], argv[7], argv[8]);
   return 0;
 }
-

@@ -2,6 +2,7 @@
 #include "TidyCats.h"
 #include "DreamPlot.h"
 #include "TLegend.h"
+#include "DLM_Ck.h"
 #include "DLM_CkDecomposition.h"
 #include "TGraph.h"
 

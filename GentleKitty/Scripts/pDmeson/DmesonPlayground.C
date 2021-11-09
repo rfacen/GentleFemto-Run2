@@ -11,6 +11,7 @@
 #include "TStyle.h"
 #include "TLatex.h"
 
+#include "DLM_Ck.h"
 #include "DLM_CkDecomposition.h"
 
 /// =====================================================================================
@@ -106,7 +107,7 @@ int main(int argc, char *argv[]) {
                                                    CATSLambdaParam::FeedDown, 0,
                                                    0);
   const double flatDplus = 1.f - primaryDplus - pDstarDplus;
-  
+
   std::cout << "Genuine p-D+ " << primaryDplus << "\n";
   std::cout << "p-D* -> p-D+ " << pDstarDplus << "\n";
   std::cout << "Flat in p-D+ " << flatDplus << "\n";
@@ -123,7 +124,7 @@ int main(int argc, char *argv[]) {
   std::cout << "Genuine p-D- " << primaryDminus << "\n";
   std::cout << "p-D* -> p-D- " << pDstarDminus << "\n";
   std::cout << "Flat in p-D- " << flatDminus << "\n";
-  
+
   /// Femto radius
   const double rCorepDplusLow = 0.72;
   const double rCorepDplusDefault = 0.8;
@@ -144,7 +145,7 @@ int main(int argc, char *argv[]) {
   asdasd->SetRightMargin(0.16);
   histDecayKindematicsDstar->Draw("colz");
   asdasd->Print("DecayTransformationDstar.pdf");
-  
+
   auto calibFileBeauty = TFile::Open(
       TString::Format("%s/beauty.root", CalibBaseDir.Data()));
   auto histDecayKindematicsBeauty = (TH2F*) calibFileBeauty->Get("histSmearBmeson");
@@ -152,7 +153,7 @@ int main(int argc, char *argv[]) {
   beautyCan->SetRightMargin(0.16);
   histDecayKindematicsBeauty->Draw("colz");
   beautyCan->Print("DecayTransformationB.pdf");
-  
+
   // Momentum resolution
   auto momResFile = TFile::Open(TString::Format("%s/momRes_Dmesons.root", CalibBaseDir.Data()).Data());
   auto histMomentumResolutionpDplus = TransformToMeV((TH2F*)momResFile->Get("pDplus"));
@@ -210,7 +211,7 @@ int main(int argc, char *argv[]) {
   grDplusLambda->SetLineWidth(2);
   grDplusLambda->SetLineStyle(2);
   grDplusLambda->SetTitle(";#it{k}* (MeV/#it{c}); #it{C}(#it{k}*)");
-  
+
   auto grDstarplusGenuine = new TGraph();
   DreamPlot::SetStyleGraph(grDstarplusGenuine, 20, kGreen + 3, 0.8);
   grDstarplusGenuine->SetLineWidth(2);
@@ -304,7 +305,7 @@ int main(int argc, char *argv[]) {
                       "p#minus#kern[-0.95]{ }D^{+} (Coulomb only)", "l");
   legDplus2->Draw("same");
   dPlusLambda->Print("dplusExp.pdf");
-  
+
   auto dDstarPlus = new TCanvas("p-D*+ Transformation", "p-D*+ Transformation");
   grDstarplusSmeared->Draw("AL3");
   grDstarplusGenuine->Draw("L3");
@@ -360,7 +361,7 @@ int main(int argc, char *argv[]) {
   grDplusCoulomb->Draw("AL3");
   grDplusLambda->Draw("L3");
   dPlus->Print("dplusCoul.pdf");
-  
+
   /// -----------------------------------------------------------------------------------
   /// For the Dminus
 
@@ -371,7 +372,7 @@ int main(int argc, char *argv[]) {
 
   auto grSourceDminusUp = new TGraph();
   auto grSourceDminusLow = new TGraph();
-  
+
   auto grDminusCoulomb = new TGraph();
   DreamPlot::SetStyleGraph(grDminusCoulomb, 20, kBlue + 3, 0.8);
   grDminusCoulomb->SetLineWidth(2);
@@ -425,7 +426,7 @@ int main(int argc, char *argv[]) {
   FillSourceGraph(catsDminusCoulombOnly, grSourceDminusUp);
   grSourceDminusUp->Fit(gaussFit, "Q", "R", 0, 12);
   const double dminusRadUp = gaussFit->GetParameter(0);
-  
+
   catsDminusCoulombOnly.SetAnaSource(0, rCorepDminusDefault);
   catsDminusCoulombOnly.KillTheCat();
   catsDstarminus.SetAnaSource(0, rCorepDminusDefault);
@@ -436,7 +437,7 @@ int main(int argc, char *argv[]) {
   FillSourceGraph(catsDminusCoulombOnly, grSourceDminus);
   FillCkGraph(catsDminusCoulombOnly, grDminusCoulomb);
   FillCkGraph(catsDminusHaidenbauer, grDminusHaidenbauer);
-  
+
   auto cminus = new TCanvas("p-D- source", "p-D- source");
   grSourceDminus->Draw("AL3");
   grSourceDminus->GetXaxis()->SetRangeUser(0, 10);
@@ -493,7 +494,7 @@ int main(int argc, char *argv[]) {
                                       DLM_CkDecomposition::cFake);
   CkDec_pDminusLambda.Update();
   FillCkGraph(DLM_pDminusCoulomb, CkDec_pDminusLambda, grDminusLambda);
-  
+
   DLM_CkDecomposition CkDec_pDstarminus_Smeared("pDstarminus_smear", 0,
                                                *DLM_pDstarminus,
                                                histDecayKindematicsDstar);
@@ -575,10 +576,10 @@ int main(int argc, char *argv[]) {
   grDminusCoulomb->Draw("AL3");
   grDminusLambda->Draw("L3");
   dminus->Print("dminusCoul.pdf");
-  
+
   /// -----------------------------------------------------------------------------------
   /// Feeding from beauty
-  
+
   auto grBpGenuine = new TGraph();
   DreamPlot::SetStyleGraph(grBpGenuine, 20, kRed + 3, 0.8);
   grBpGenuine->SetLineWidth(2);
@@ -593,7 +594,7 @@ int main(int argc, char *argv[]) {
   grBpLambda->SetLineWidth(2);
   grBpLambda->SetLineStyle(2);
   grBpLambda->SetTitle(";#it{k}* (MeV/#it{c}); #it{C}(#it{k}*)");
-  
+
   const double protonMass = TDatabasePDG::Instance()->GetParticle(2212)->Mass()
       * 1000;
   const double bminusMass =
@@ -620,13 +621,13 @@ int main(int argc, char *argv[]) {
   auto DLM_pB = new DLM_Ck(1, 0, beautyCats);
   DLM_CkDecomposition CkDec_pBGenuine("pBgen", 0, *DLM_pB, nullptr);
   CkDec_pBGenuine.Update();
-  
+
   DLM_CkDecomposition CkDec_pB("pB", 1, *DLM_pB,
                                 histDecayKindematicsBeauty);
   CkDec_pB.AddContribution(0, 1.f - Bfeeddown, DLM_CkDecomposition::cFake);
   CkDec_pB.Update();
   FillCkGraph(DLM_pB, CkDec_pB, grBpLambda);
-  
+
   DLM_CkDecomposition CkDec_pB_Smeared("pB_smear", 0, *DLM_pB, histDecayKindematicsBeauty);
   CkDec_pB_Smeared.Update();
   FillCkGraph(DLM_pB, CkDec_pB_Smeared, grBpSmeared);

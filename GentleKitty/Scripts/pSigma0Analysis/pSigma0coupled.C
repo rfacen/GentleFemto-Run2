@@ -12,6 +12,7 @@
 #include "DLM_CkModels.h"
 #include "DreamPlot.h"
 #include "CATSInputSigma0.h"
+#include "DLM_Ck.h"
 #include "DLM_CkDecomposition.h"
 #include "CATSLambdaParam.h"
 #include "TDatabasePDG.h"

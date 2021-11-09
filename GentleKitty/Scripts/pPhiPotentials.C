@@ -11,6 +11,7 @@
 #include "TStyle.h"
 #include "TLatex.h"
 
+#include "DLM_Ck.h"
 #include "DLM_CkDecomposition.h"
 
 /// =====================================================================================
@@ -38,7 +39,7 @@ int main(int argc, char *argv[]) {
   const int nBins = 30;
 
   auto outfile = new TFile("pphiPotentials.root", "RECREATE");
-  
+
   auto grPot1 = new TGraph();
   DreamPlot::SetStyleGraph(grPot1, 20, kBlue);
   grPot1->SetTitle(";#it{k}* (MeV/#it{c}); #it{C}(#it{k}*)");
@@ -51,7 +52,7 @@ int main(int argc, char *argv[]) {
   auto grPotential2 = (TGraph*)grPotential1->Clone("grPotential2");
   auto grPotential3 = (TGraph*)grPotential1->Clone("grPotential3");
   auto grPotential4 = (TGraph*)grPotential1->Clone("grPotential4");
-  
+
   CATS cats1, cats2;
   TidyCats* tidy = new TidyCats();
   tidy->GetCatsProtonPhi(&cats1, nBins, kmin, kmax, TidyCats::pYukawa, TidyCats::sGaussian);
@@ -67,7 +68,7 @@ int main(int argc, char *argv[]) {
   DLM_pphi1->Update();
   FillCkGraph(DLM_pphi1, grPot2);
   FillPotentialGraph(cats1, grPotential2);
-  
+
   tidy->GetCatsProtonPhi(&cats2, nBins, kmin, kmax, TidyCats::pGaussian, TidyCats::sGaussian);
   cats2.SetAnaSource(0, rpphi);
   cats2.KillTheCat();
@@ -82,7 +83,7 @@ int main(int argc, char *argv[]) {
   DLM_pphi2->Update();
   FillCkGraph(DLM_pphi2, grPot4);
   FillPotentialGraph(cats2, grPotential4);
-  
+
   outfile->cd();
   grPot1->Write("CkYukawa1");
   grPotential1->Write("Yukawa1");

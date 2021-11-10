@@ -1,3 +1,4 @@
+#include "TROOT.h"
 #include "CATSInputSigma0.h"
 #include "DreamPlot.h"
 #include "DreamSystematics.h"

@@ -4,6 +4,7 @@
 #include "DLM_Source.h"
 #include "DLM_Potentials.h"
 #include "DLM_CkModels.h"
+#include "DLM_Ck.h"
 #include "DLM_CkDecomposition.h"
 #include "DLM_Fitters.h"
 
@@ -32,7 +33,7 @@ void FitPPVariations(const unsigned& NumIter, int imTBin, int system, int source
   gROOT->ProcessLine("gErrorIgnoreLevel = 2001;");
 
   //Setup Various Inputs
-  
+
   TString HistppName = HistoName.Data();
   TFile* inFile = TFile::Open(TString::Format("%s", InputFile.Data()), "READ");
   if (!inFile) {
@@ -51,7 +52,7 @@ void FitPPVariations(const unsigned& NumIter, int imTBin, int system, int source
   const double kMin = StoreHist->GetXaxis()->GetXmin();
   const double kMax = kMin + StoreHist->GetXaxis()->GetBinWidth(1) * NumMomBins;  //(4 is the bin width)
   std::cout << "The considered Range is kMin: " << kMin << " and kMax: " << kMax << std::endl;
-  
+
   //if you modify you may need to change the CATS ranges somewhere below
   double FemtoRegion[3];
   FemtoRegion[0] = 350;
@@ -60,7 +61,7 @@ void FitPPVariations(const unsigned& NumIter, int imTBin, int system, int source
 
   if (FemtoRegion[2] > kMax) {
     std::cout << "FemtoRegion larger than kMax, please Adjust \n";
-    return; 
+    return;
   }
   TidyCats::Sources TheSource;
   TidyCats::Sources FeeddownSource;
@@ -85,10 +86,10 @@ void FitPPVariations(const unsigned& NumIter, int imTBin, int system, int source
   double PurityProton, PrimProton, SecLamProton;
   double PurityLambda, PrimLambdaAndSigma, SecLambda;
   double PurityXi;
-  
+
   std::cout << "SYSTEM: " << system << std::endl;
 
-  //Setup the input vales for the Lambda parameters & Specific to the system  
+  //Setup the input vales for the Lambda parameters & Specific to the system
 
   if (system == 0) {
     CalibBaseDir += "~/cernbox/SystematicsAndCalib/pPbRun2_MB/";
@@ -97,7 +98,7 @@ void FitPPVariations(const unsigned& NumIter, int imTBin, int system, int source
     PrimProton = 0.862814;
     SecLamProton = 0.09603;
 
-    PurityLambda = 0.937761; 
+    PurityLambda = 0.937761;
     PrimLambdaAndSigma = 0.79;  //fraction of primary Lambdas + Sigma 0
     SecLambda = 0.30;  //fraction of weak decay Lambdas
 
@@ -118,11 +119,11 @@ void FitPPVariations(const unsigned& NumIter, int imTBin, int system, int source
     CalibBaseDir += "~/cernbox/SystematicsAndCalib/ppRun2_HM/";
     SigmaFileName += "Sample6_MeV_compact.root";
     PurityProton = 0.9943;
-    
+
     PrimProton = 0.822;
     SecLamProton = 0.124;  //Fraction of Lambdas
 
-    PurityLambda = 0.961; 
+    PurityLambda = 0.961;
     PrimLambdaAndSigma = 0.785;  //fraction of primary Lambdas + Sigma 0
     SecLambda = 1-PrimLambdaAndSigma;  //fraction of weak decay Lambdas
 
@@ -133,7 +134,7 @@ void FitPPVariations(const unsigned& NumIter, int imTBin, int system, int source
   }
 
   //Setup the input resolution and smearing
-  
+
   CATSInput *CATSinput = new CATSInput();
   CATSinput->SetCalibBaseDir(CalibBaseDir.Data());
   CATSinput->SetMomResFileName("run2_decay_matrices_old.root");
@@ -168,28 +169,28 @@ void FitPPVariations(const unsigned& NumIter, int imTBin, int system, int source
   // Primary Fraction = N / N(1+0.0086+1/3+1/6)
   // Secondary Omegas = N*0.0086  / N(1+0.0086+1/3+1/6)
   // etc.
-   
-  //Calculate the Lambda Parameters and their variations 
+
+  //Calculate the Lambda Parameters and their variations
 
   std::vector<double> Variation = { 0.95, 1.0, 1.05 };
-  float pFeeddownRadius = 1.3; 
+  float pFeeddownRadius = 1.3;
   std::vector<Particle> Proton;  // 1) variation of the Prim Fraction 2) variation of the Secondary Comp.
   std::vector<Particle> Lambda;  // 1) variation of Lambda/Sigma Ratio, 2) variation of Xi0/Xim Ratio
   std::vector<Particle> Xi;  //1) variation of dN/dy Omega 2) variation of dN/dy Xi1530
 
-  const double varPrimProton =  PrimProton; 
+  const double varPrimProton =  PrimProton;
   const double varSecProton = (1-(double)varPrimProton);
   for (auto itComp : Variation) {
-    double varSecFracLamb = itComp*SecLamProton; 
+    double varSecFracLamb = itComp*SecLamProton;
     double varSecFracSigma = 1. - varPrimProton - varSecFracLamb;
     Proton.push_back(Particle(PurityProton , varPrimProton, { varSecFracLamb,
 	    varSecFracSigma }));
-    double sum = varPrimProton+varSecFracLamb+varSecFracSigma; 
+    double sum = varPrimProton+varSecFracLamb+varSecFracSigma;
   }
 
   for (auto itSLRatio : Variation) {
     double LamSigProdFraction = 3 * itSLRatio / 4. < 1 ? 3 * itSLRatio / 4. : 1;
-    double PrimLambda = LamSigProdFraction * PrimLambdaAndSigma; 
+    double PrimLambda = LamSigProdFraction * PrimLambdaAndSigma;
     double SecSigLambda = (1. - LamSigProdFraction) * PrimLambdaAndSigma;  // decay probability = 100%!
     for (auto itXi02mRatio : Variation) {
       double SecXimLambda = itXi02mRatio * SecLambda / 2.;
@@ -198,7 +199,7 @@ void FitPPVariations(const unsigned& NumIter, int imTBin, int system, int source
 	      SecXimLambda, SecXi0Lambda0 }));
     }
   }
-  
+
   for (auto itXimOmega : Variation) {
     for (auto itXi1530 : Variation) {
       double XiNormalization = 1 + itXimOmega * OmegamXimProdFraction * OmegamXim_BR
@@ -215,7 +216,7 @@ void FitPPVariations(const unsigned& NumIter, int imTBin, int system, int source
 	      SecXi01530Xim, SecXim1530Xim }));
     }
   }
-  
+
   CATSLambdaParam ppLam0(Proton[0], Proton[0], true);
   CATSLambdaParam ppLam1(Proton[1], Proton[1], true);
   CATSLambdaParam ppLam2(Proton[2], Proton[2], true);
@@ -233,7 +234,7 @@ void FitPPVariations(const unsigned& NumIter, int imTBin, int system, int source
   const std::vector<double> lam_pp_fake = {
     (ppLam0.GetLambdaParam(CATSLambdaParam::Primary,CATSLambdaParam::Fake) +
      ppLam0.GetLambdaParam(CATSLambdaParam::Fake, CATSLambdaParam::Primary) +
-     ppLam0.GetLambdaParam(CATSLambdaParam::Fake, CATSLambdaParam::Fake)),    
+     ppLam0.GetLambdaParam(CATSLambdaParam::Fake, CATSLambdaParam::Fake)),
     (ppLam1.GetLambdaParam(CATSLambdaParam::Primary, CATSLambdaParam::Fake) +
      ppLam1.GetLambdaParam(CATSLambdaParam::Fake, CATSLambdaParam::Primary) +
      ppLam1.GetLambdaParam(CATSLambdaParam::Fake, CATSLambdaParam::Fake)),
@@ -263,42 +264,42 @@ void FitPPVariations(const unsigned& NumIter, int imTBin, int system, int source
 						    CATSLambdaParam::Fake)
     + pXiLam.GetLambdaParam(CATSLambdaParam::Fake, CATSLambdaParam::Primary)
     + pXiLam.GetLambdaParam(CATSLambdaParam::Fake, CATSLambdaParam::Fake);
-  
 
-  //Link the output 
+
+  //Link the output
   TFile* OutFile = new TFile(TString::Format("%s/OutFileVarpp_%u.root", OutputDir.Data(), NumIter), "RECREATE");
   if (!OutFile) {
     return;
   }
-  
+
   float total = 81;
-  int numIter = NumIter; 
-  int uIter = 1; 
+  int numIter = NumIter;
+  int uIter = 1;
   int vFemReg;  //which femto region we use for pp (1 = default)
-  float thismT = 100; 
+  float thismT = 100;
   float FemtoFitMax = 0;
   float BaseLineMin = 0;
-  float BaseLineMax = 0; 
+  float BaseLineMax = 0;
   unsigned int vMod_pL = 1;  //which pL function to use: //0=exact NLO (at the moment temporary it is Usmani); 1=Ledni NLO; 2=Ledni LO; 3=ESC08
   unsigned int BaseLine = 0;
-  float pa; 
-  float pb;  
-  float pc; 
+  float pa;
+  float pb;
+  float pc;
   int vFrac_pp_pL;  //fraction of protons coming from Lambda variation (1 = default)
-  float lmb_pp; 
+  float lmb_pp;
   float lmb_ppL;
   float lmb_pL = lam_pL;
   float lmb_pLS0 = lam_pL_pS0;
-  float lmb_pLXim = lam_pL_pXm; 
+  float lmb_pLXim = lam_pL_pXm;
   float ResultRadius;
   float ResultRadiusErr;
   float Stability;
   float outChiSqNDF;
-  TGraph* pointerFitResult = nullptr; 
-  
+  TGraph* pointerFitResult = nullptr;
+
   TTree* outTree = new TTree("ppTree","ppTree");
-  outTree->Branch("DataVarID", &numIter, "DataVarID/i"); 
-  outTree->Branch("FitVarID", &uIter, "FitVarID/i"); 
+  outTree->Branch("DataVarID", &numIter, "DataVarID/i");
+  outTree->Branch("FitVarID", &uIter, "FitVarID/i");
   outTree->Branch("imT",&imTBin, "imT/i");
   outTree->Branch("mTValue",&thismT, "mTValue/F");
   outTree->Branch("iAng",&iAngDist,"iAng/i");
@@ -323,20 +324,20 @@ void FitPPVariations(const unsigned& NumIter, int imTBin, int system, int source
   outTree->Branch("chiSqNDF",&outChiSqNDF,"chiSqNDF/F");
   outTree->Branch("CorrHist","TH1F",&StoreHist,sizeof(TH1F));
   outTree->Branch("FitResult","TGraph",&pointerFitResult,sizeof(TGraph));
-  
+
   TidyCats* tidy = new TidyCats();
 
 
   //Setup the source stuff
 
-  
+
   CATS AB_pp;
   tidy->GetCatsProtonProton(&AB_pp, NumMomBins, kMin, kMax, TheSource);
 
   AB_pp.KillTheCat();
 
   //Setup the feed down objects
-  
+
   CATS AB_pXim;
   tidy->GetCatsProtonXiMinus(&AB_pXim, NumMomBins, kMin, kMax, FeeddownSource,
                              TidyCats::pHALQCD, 12);
@@ -348,7 +349,7 @@ void FitPPVariations(const unsigned& NumIter, int imTBin, int system, int source
   tidy->GetCatsProtonXiMinus1530(&AB_pXim1530, NumMomBins, kMin, kMax,
                                  FeeddownSource);
   AB_pXim1530.KillTheCat();
-  
+
   for (vMod_pL = 1; vMod_pL < 4; ++vMod_pL) {
     TidyCats::pLPot PLpot;
     CATS AB_pL;
@@ -438,7 +439,7 @@ void FitPPVariations(const unsigned& NumIter, int imTBin, int system, int source
             std::cout << "No Calib 0 \n";
             return;
           }
-	  
+
           CkDec_pp.AddContribution(0, lam_pp_pL.at(vFrac_pp_pL),
                                    DLM_CkDecomposition::cFeedDown, &CkDec_pL,
                                    CATSinput->GetResFile(0));
@@ -561,13 +562,13 @@ void FitPPVariations(const unsigned& NumIter, int imTBin, int system, int source
           fitter->GetFitGraph(0, FitResult);
 
 	  pointerFitResult = new TGraph(FitResult.GetN(), FitResult.GetX(), FitResult.GetY());
-	  
+
           pointerFitResult->SetLineWidth(2);
           pointerFitResult->SetLineColor(kRed);
           pointerFitResult->SetMarkerStyle(24);
           pointerFitResult->SetMarkerColor(kRed);
           pointerFitResult->SetMarkerSize(1);
-          
+
           double Chi2 = 0;
           unsigned EffNumBins = 0;
           if (BaseLine == 0) {
@@ -602,7 +603,7 @@ void FitPPVariations(const unsigned& NumIter, int imTBin, int system, int source
             Chi2 += (dataY - theoryY) * (dataY - theoryY) / (dataErr * dataErr);
             EffNumBins++;
           }
-	  
+
 	  pa = fitter->GetParameter("pp", DLM_Fitter1::p_a);
 	  pb = fitter->GetParameter("pp", DLM_Fitter1::p_b);
 	  pc = fitter->GetParameter("pp", DLM_Fitter1::p_c);
@@ -613,9 +614,9 @@ void FitPPVariations(const unsigned& NumIter, int imTBin, int system, int source
 	  Stability = fitter->GetParameter("pp", DLM_Fitter1::p_sor1);
 	  outChiSqNDF = Chi2 / EffNumBins;
 	  outTree->Fill();
-	  
+
 	  uIter++;
-	  
+
           delete Ck_pp;
           delete Ck_pL;
           delete Ck_pSigma0;
@@ -639,4 +640,3 @@ int main(int argc, char *argv[]) {
                   atoi(argv[5]), atoi(argv[6]), argv[7], argv[8], argv[9]);
   return 0;
 }
-

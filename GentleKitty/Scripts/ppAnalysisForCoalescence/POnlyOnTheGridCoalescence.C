@@ -4,6 +4,7 @@
 #include "DLM_Source.h"
 #include "DLM_Potentials.h"
 #include "DLM_CkModels.h"
+#include "DLM_Ck.h"
 #include "DLM_CkDecomposition.h"
 #include "DLM_Fitters.h"
 
@@ -93,7 +94,7 @@ void FitPPVariations(const unsigned &NumIter, int imTBin, int system,
 
   std::cout << "SYSTEM: " << system << std::endl;
 
-  //Setup the input vales for the Lambda parameters & Specific to the system  
+  //Setup the input vales for the Lambda parameters & Specific to the system
 
   if (system == 0) {
     CalibBaseDir += "/home/sbhawani/Desktop/RadiiFit/RootFiles_forFit/";
@@ -123,7 +124,7 @@ void FitPPVariations(const unsigned &NumIter, int imTBin, int system,
     CalibBaseDir += "/home/sbhawani/Desktop/RadiiFit/RootFiles_forFit/";
     SigmaFileName += "Sample6_MeV_compact.root";
     PurityProton = 0.9943;
-    // PrimProton = 0.873; 
+    // PrimProton = 0.873;
     // SecLamProton = 0.089;  //Fraction of Lambdas
 
     // PurityLambda = 0.961;
@@ -362,7 +363,7 @@ void FitPPVariations(const unsigned &NumIter, int imTBin, int system,
   std::cout << "==pFeeddownRadius: " << pFeeddownRadius << "fm ==\n";
   std::cout << "===========================\n";
 
-  //Link the output 
+  //Link the output
   TFile *OutFile = new TFile(
       TString::Format("%s/OutFileVarpp_%u.root", OutputDir.Data(), NumIter),
       "RECREATE");
@@ -733,4 +734,3 @@ int main(int argc, char *argv[]) {
                   atoi(argv[5]), argv[6], argv[7], argv[8]);
   return 0;
 }
-

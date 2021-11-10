@@ -2,6 +2,7 @@
 #include "DLM_Potentials.h"
 #include "DLM_CkModels.h"
 #include "CATS.h"
+#include "DLM_Ck.h"
 #include "DLM_CkDecomposition.h"
 #include "DLM_Fitters.h"
 #include "TRandom3.h"

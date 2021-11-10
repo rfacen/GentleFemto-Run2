@@ -16,9 +16,10 @@ class DreamCF {
  public:
   DreamCF();
   virtual ~DreamCF();
-  void SetPairs(DreamPair* pairOne, DreamPair* pairTwo) {
+  void SetPairs(DreamPair* pairOne, DreamPair* pairTwo, const bool& CORRECT_ADDITON=false) {
     fPairOne = pairOne;
     fPairTwo = pairTwo;
+    DirectSum = CORRECT_ADDITON;
   }
   ;
   void SetPairsBBar(DreamPair* pairOne) {
@@ -65,6 +66,11 @@ class DreamCF {
   std::vector<TH1F*> fRatio;
   DreamPair* fPairOne;
   DreamPair* fPairTwo;
+  //if false, the two correlations will be combined using the
+  //weighted mean based on the errors of the correlations (WRONG)
+  //the above option has to be kept the default one for compatibility reasons
+  //in any future analysis this HAS TO BE TRUE!!!
+  bool DirectSum;
 };
 
 #endif /* DREAMCF_H_ */

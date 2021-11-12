@@ -28,6 +28,7 @@ DreamKayTee::DreamKayTee(const int imTMult)
     fSum(nullptr),
     fNormleft(0),
     fNormright(0),
+    fDirectSum(0),
     fSEMEReweighting(nullptr),
     fSEMEReweightingMeV(nullptr) {
   fSEkT[0] = nullptr;
@@ -121,7 +122,7 @@ void DreamKayTee::ObtainTheCorrelationFunction(const char* outFolder,
       allCFsOut->Close();
       for (int ikT = 0; ikT < fNKayTeeBins - 1; ++ikT) {
         fSum[ikT] = new DreamCF();
-        fSum[ikT]->SetPairs(fCFPart[0][ikT], fCFPart[1][ikT]);
+        fSum[ikT]->SetPairs(fCFPart[0][ikT], fCFPart[1][ikT], fDirectSum);
         fSum[ikT]->GetCorrelations(pair);
         std::vector<TH1F*> CFs = fSum[ikT]->GetCorrelationFunctions();
         TString outfileName = TString::Format("%s/CFOutput_%s_%s_%s_%u.root",
@@ -241,7 +242,7 @@ void DreamKayTee::ObtainTheCorrelationFunctionAncestors(const char* outFolder,
       allCFsOut->Close();
       for (int ikT = 0; ikT < fNKayTeeBins - 1; ++ikT) {
         fSum[ikT] = new DreamCF();
-        fSum[ikT]->SetPairs(fCFPart[0][ikT], fCFPart[1][ikT]);
+        fSum[ikT]->SetPairs(fCFPart[0][ikT], fCFPart[1][ikT], fDirectSum);
         fSum[ikT]->GetCorrelations(pair);
         std::vector<TH1F*> CFs = fSum[ikT]->GetCorrelationFunctions();
         TString outfileName = TString::Format("%s/CFOutput_%s_%s_%s_%s_%u.root",
@@ -739,7 +740,7 @@ std::vector<DreamCF*> DreamKayTee::GetmTMultBinned(int imT, int Varcount) {
     //pp->Rebin(pp->GetPairFixShifted(0), 20);
     //ApAp->Rebin(ApAp->GetPairFixShifted(0), 20);
 
-    CF_pp->SetPairs(pp,ApAp);
+    CF_pp->SetPairs(pp,ApAp, fDirectSum);
     CF_pp->GetCorrelations();
     CF_pp->WriteOutput(TString::Format("%s/CF_ppVar%u_mTBin_%i_%s.root",gSystem->pwd(),Varcount,
                                        imT,ProjName.Data()));

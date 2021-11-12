@@ -75,6 +75,9 @@ class DreamKayTee {
   void SetMultBins(std::vector<int> multBins) {
     fMultBins = multBins;
   };
+  void SetDirectSum(const bool& direct_sum) {
+    fDirectSum = direct_sum;
+  };
   std::vector<DreamCF*> GetmTMultBinned(int imT, int Varcount);
  private:
   bool fIskT;
@@ -94,6 +97,7 @@ class DreamKayTee {
   DreamCF** fSum;
   float fNormleft;
   float fNormright;
+  bool fDirectSum;
   TH1F* fSEMEReweighting;
   TH1F* fSEMEReweightingMeV;
 };

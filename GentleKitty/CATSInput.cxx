@@ -32,7 +32,8 @@ CATSInput::CATSInput()
       fSigma(),
       fCF_pL(nullptr),
       fCF_LL(nullptr),
-      fCF_pXi(nullptr) {
+      fCF_pXi(nullptr),
+      fDirectSum(0) {
   // TODO Auto-generated constructor stub
   TH1::AddDirectory(kFALSE);
   TH2::AddDirectory(kFALSE);
@@ -285,16 +286,16 @@ void CATSInput::ObtainCFs(int rebin, float normleft, float normright) {
       pXi->ReweightMixedEvent(pXi->GetPairRebinned(0), 0.2, 0.9);
       ApAXi->ReweightMixedEvent(ApAXi->GetPairRebinned(0), 0.2, 0.9);
 
-      fCF_pp->SetPairs(pp, ApAp);
+      fCF_pp->SetPairs(pp, ApAp, fDirectSum);
       fCF_pp->GetCorrelations("pp");
 
-      fCF_pL->SetPairs(pL, ApAL);
+      fCF_pL->SetPairs(pL, ApAL, fDirectSum);
       fCF_pL->GetCorrelations("pL");
 
-      fCF_LL->SetPairs(LL, ALAL);
+      fCF_LL->SetPairs(LL, ALAL, fDirectSum);
       fCF_LL->GetCorrelations("LL");
 
-      fCF_pXi->SetPairs(pXi, ApAXi);
+      fCF_pXi->SetPairs(pXi, ApAXi, fDirectSum);
       fCF_pXi->GetCorrelations("pXi");
       fnormalizationLeft = normleft;
       fnormalizationRight = normright;
@@ -358,7 +359,7 @@ DreamCF* CATSInput::ObtainCFSyst(int rebin, const char* name, DreamDist* ppDist,
     }
   }
 
-  outCF->SetPairs(pp, ApAp);
+  outCF->SetPairs(pp, ApAp, fDirectSum);
   outCF->GetCorrelations(name);
   return outCF;
 }

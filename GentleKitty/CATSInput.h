@@ -71,6 +71,11 @@ DreamCF* ObtainCFSystBBar(int rebin, const char* name, DreamDist* pApDist,
   void SetMomentumGami(MomentumGami* gami) {
     fMomGami = gami;
   }
+  //important to set true in all future analyises
+  void SetDirectSum(const bool& direct_sum) {
+    fDirectSum = direct_sum;
+  };
+
  protected:
   ReadDreamFile* fDreamFile;
   float fnormalizationLeft;
@@ -86,6 +91,7 @@ DreamCF* ObtainCFSystBBar(int rebin, const char* name, DreamDist* pApDist,
   TString fNameSigmaFile;
   int fFraction_Res;
   int fFraction_Sig;
+  bool fDirectSum;
   double fUnitConv_Res;
   double fUnitConv_Sig;
   std::vector<TH2F*> fRes;

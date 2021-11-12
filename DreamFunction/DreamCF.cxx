@@ -37,9 +37,18 @@ DreamCF::~DreamCF() {
 void DreamCF::GetCorrelations(const char* pairName) {
   if (fPairOne && fPairOne->GetPair()) {
     if (fPairTwo && fPairTwo->GetPair()) {
-      TH1F* CFSum = AddCF(fPairOne->GetPair()->GetCF(),
-                          fPairTwo->GetPair()->GetCF(),
-                          Form("hCkTotNormWeight%s", pairName));
+      TH1F* CFSum;
+      if(fDirectSum){
+        CFSum = AddCF(fPairOne->GetPair(),
+                            fPairTwo->GetPair(),
+                            Form("hCkTotNormWeight%s", pairName));
+      }
+      else{
+        CFSum = AddCF(fPairOne->GetPair()->GetCF(),
+                            fPairTwo->GetPair()->GetCF(),
+                            Form("hCkTotNormWeight%s", pairName));
+      }
+
       if (CFSum) {
         fCF.push_back(CFSum);
         TString CFSumMeVName = Form("%sMeV", CFSum->GetName());
@@ -115,8 +124,15 @@ void DreamCF::LoopCorrelations(std::vector<DreamDist*> PairOne,
       DreamDist* PartPair = PairOne.at(iIter);
       DreamDist* AntiPartPair = PairTwo.at(iIter);
       TString CFSumName = Form("%s_%i", name, iIter);
-      TH1F* CFSum = AddCF(PartPair->GetCF(), AntiPartPair->GetCF(),
-                          CFSumName.Data());
+      TH1F* CFSum;
+      if(fDirectSum){
+        CFSum = AddCF(PartPair, AntiPartPair,
+                            CFSumName.Data());
+      }
+      else{
+        CFSum = AddCF(PartPair->GetCF(), AntiPartPair->GetCF(),
+                            CFSumName.Data());
+      }
       if (CFSum) {
         fCF.push_back(CFSum);
         auto CFgrSum = AddCF(CFSum, { { fPairOne, fPairTwo } },
@@ -218,6 +234,75 @@ void DreamCF::WriteOutput(TFile* output, bool closeFile) {
   return;
 }
 
+TH1F* DreamCF::AddCF(DreamDist* DD1, DreamDist* DD2, const char* name) {
+  TH1F* hist_CF_sum = nullptr;
+  TH1F* CF1 = DD1->GetCF();
+  TH1F* CF2 = DD2->GetCF();
+  if (CF1 && CF2) {
+    if (CF1->GetXaxis()->GetXmin() == CF2->GetXaxis()->GetXmin()) {
+
+      TH1F* Ratio = (TH1F*) CF1->Clone(TString::Format("%sRatio", name));
+      Ratio->Divide(CF2);
+      fRatio.push_back(Ratio);
+
+
+      //////////////////////////////////////////////////////////////////////////
+      //Calculate CFs with error weighting
+      hist_CF_sum = (TH1F*) DD1->GetSEDist()->Clone(name);
+      hist_CF_sum->Add(DD2->GetSEDist());
+      TH1F* hD = (TH1F*) DD1->GetMEDist()->Clone(name);
+      hD->Add(DD2->GetMEDist());
+      hist_CF_sum->Divide(hD);
+      delete hD;
+      //////////////////////////////////////////////////////////////////////////
+    } else {
+      Warning(
+          "DreamCF",
+          "Skipping %s and %s due to uneven beginning of binning (%.3f) and (%.3f)",
+          CF1->GetName(), CF2->GetName(), CF1->GetXaxis()->GetXmin(),
+          CF2->GetXaxis()->GetXmin());
+    }
+
+    //for the direct sum, we need to normalize again
+
+    //check if a normalization was performed on the pairs, and if it was identical
+    //if true, the sum will be normalized accordingly
+    //if false, no normalization will be performed in the same region as the 1st correlation
+    int WrongNorm = 0;
+    float normleft1 = DD1->GetNormLeft();
+    float normleft2 = DD2->GetNormLeft();
+    float normright1 = DD1->GetNormRight();
+    float normright2 = DD2->GetNormRight();
+    WrongNorm += (normleft1<0);
+    WrongNorm += (normleft2<0);
+    WrongNorm += (normleft1!=normleft2);
+    WrongNorm += (normright1<0);
+    WrongNorm += (normright2<0);
+    WrongNorm += (normright1!=normright2);
+    //////////////////////////////////////////////////////////////////////////
+    if(WrongNorm){
+      Warning("DreamCF", "Conflicting normalizations! The sum of the two correlation has been normalized according to the first pair!");
+    }
+
+    double IntegralSE=0;
+    IntegralSE += DD1->GetSEDist()->Integral(hist_CF_sum->FindBin(normleft1),hist_CF_sum->FindBin(normright1));
+    IntegralSE += DD2->GetSEDist()->Integral(hist_CF_sum->FindBin(normleft1),hist_CF_sum->FindBin(normright1));
+
+    double IntegralME=0;
+    IntegralME += DD1->GetMEDist()->Integral(hist_CF_sum->FindBin(normleft1),hist_CF_sum->FindBin(normright1));
+    IntegralME += DD2->GetMEDist()->Integral(hist_CF_sum->FindBin(normleft1),hist_CF_sum->FindBin(normright1));
+
+    if (IntegralSE != 0) {
+      hist_CF_sum->Scale(IntegralME/IntegralSE);
+    }
+    else {
+      Error("DreamCF", "AddCF division by 0");
+    }
+  }
+  return hist_CF_sum;
+
+}
+
 TH1F* DreamCF::AddCF(TH1F* CF1, TH1F* CF2, const char* name) {
   TH1F* hist_CF_sum = nullptr;
   if (CF1 && CF2) {
@@ -235,41 +320,23 @@ TH1F* DreamCF::AddCF(TH1F* CF1, TH1F* CF2, const char* name) {
         double CF1_err = CF1->GetBinError(i + 1);
         double CF2_val = CF2->GetBinContent(i + 1);
         double CF2_err = CF2->GetBinError(i + 1);
+        //average for bin i:
+        if (CF1_val != 0. && CF2_val != 0.) {
+          double CF1_err_weight = 1. / TMath::Power(CF1_err, 2.);
+          double CF2_err_weight = 1. / TMath::Power(CF2_err, 2.);
 
-        if(DirectSum){
-          double S_1 = fPairOne->GetPair()->GetSEDist()->GetBinContent(i+1);
-          double M_1 = fPairOne->GetPair()->GetMEDist()->GetBinContent(i+1);
-          double S_2 = fPairTwo->GetPair()->GetSEDist()->GetBinContent(i+1);
-          double M_2 = fPairTwo->GetPair()->GetMEDist()->GetBinContent(i+1);
-          if(M_1+M_2){
-            hist_CF_sum->SetBinContent(i+1, (S_1+S_2)/(M_1+M_2));
-            hist_CF_sum->SetBinError(i+1, sqrt(S_1+S_2)/(M_1+M_2));
-          }
-          else{
-            Error("DreamCF", "AddCF division by 0 (Mixed events)");
-            hist_CF_sum->SetBinContent(i+1, 0);
-            hist_CF_sum->SetBinError(i+1, 0);
-          }
-        }
-        else{
-          //average for bin i:
-          if (CF1_val != 0. && CF2_val != 0.) {
-            double CF1_err_weight = 1. / TMath::Power(CF1_err, 2.);
-            double CF2_err_weight = 1. / TMath::Power(CF2_err, 2.);
+          double CF_sum_average = (CF1_err_weight * CF1_val
+              + CF2_err_weight * CF2_val) / (CF1_err_weight + CF2_err_weight);
+          double CF_sum_err = 1. / TMath::Sqrt(CF1_err_weight + CF2_err_weight);
 
-            double CF_sum_average = (CF1_err_weight * CF1_val
-                + CF2_err_weight * CF2_val) / (CF1_err_weight + CF2_err_weight);
-            double CF_sum_err = 1. / TMath::Sqrt(CF1_err_weight + CF2_err_weight);
-
-            hist_CF_sum->SetBinContent(i + 1, CF_sum_average);
-            hist_CF_sum->SetBinError(i + 1, CF_sum_err);
-          } else if (CF1_val == 0. && CF2_val != 0.) {
-            hist_CF_sum->SetBinContent(i + 1, CF2_val);
-            hist_CF_sum->SetBinError(i + 1, CF2_err);
-          } else if (CF2_val == 0 && CF1_val != 0.) {
-            hist_CF_sum->SetBinContent(i + 1, CF1_val);
-            hist_CF_sum->SetBinError(i + 1, CF1_err);
-          }
+          hist_CF_sum->SetBinContent(i + 1, CF_sum_average);
+          hist_CF_sum->SetBinError(i + 1, CF_sum_err);
+        } else if (CF1_val == 0. && CF2_val != 0.) {
+          hist_CF_sum->SetBinContent(i + 1, CF2_val);
+          hist_CF_sum->SetBinError(i + 1, CF2_err);
+        } else if (CF2_val == 0 && CF1_val != 0.) {
+          hist_CF_sum->SetBinContent(i + 1, CF1_val);
+          hist_CF_sum->SetBinError(i + 1, CF1_err);
         }
       }
     } else {
@@ -279,44 +346,6 @@ TH1F* DreamCF::AddCF(TH1F* CF1, TH1F* CF2, const char* name) {
           CF1->GetName(), CF2->GetName(), CF1->GetXaxis()->GetXmin(),
           CF2->GetXaxis()->GetXmin());
     }
-
-    //for the direct sum, we need to normalize again
-    if(DirectSum){
-      //check if a normalization was performed on the pairs, and if it was identical
-      //if true, the sum will be normalized accordingly
-      //if false, no normalization will be performed in the same region as the 1st correlation
-      bool CorrectNorm = true;
-      float normleft1 = fPairOne->GetPair()->GetNormLeft();
-      float normleft2 = fPairTwo->GetPair()->GetNormLeft();
-      float normright1 = fPairOne->GetPair()->GetNormRight();
-      float normright2 = fPairTwo->GetPair()->GetNormRight();
-      CorrectNorm *= (normleft1<0);
-      CorrectNorm *= (normleft2<0);
-      CorrectNorm *= (normleft1!=normleft2);
-      CorrectNorm *= (normright1<0);
-      CorrectNorm *= (normright2<0);
-      CorrectNorm *= (normright1!=normright2);
-      //////////////////////////////////////////////////////////////////////////
-      if(!CorrectNorm){
-        Warning("DreamCF", "Conflicting normalizations! The sum of the two correlation has been normalized according to the first pair!");
-      }
-
-      double IntegralSE=0;
-      IntegralSE += fPairOne->GetPair()->GetSEDist()->Integral(hist_CF_sum->FindBin(normleft1),hist_CF_sum->FindBin(normright1));
-      IntegralSE += fPairTwo->GetPair()->GetSEDist()->Integral(hist_CF_sum->FindBin(normleft1),hist_CF_sum->FindBin(normright1));
-
-      double IntegralME=0;
-      IntegralME += fPairOne->GetPair()->GetMEDist()->Integral(hist_CF_sum->FindBin(normleft1),hist_CF_sum->FindBin(normright1));
-      IntegralME += fPairTwo->GetPair()->GetMEDist()->Integral(hist_CF_sum->FindBin(normleft1),hist_CF_sum->FindBin(normright1));
-
-      if (IntegralSE != 0) {
-        hist_CF_sum->Scale(IntegralME/IntegralSE);
-      }
-      else {
-        Error("DreamCF", "AddCF division by 0");
-      }
-    }
-
   }
   return hist_CF_sum;
 }

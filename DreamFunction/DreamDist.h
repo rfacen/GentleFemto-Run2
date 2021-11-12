@@ -51,8 +51,8 @@ class DreamDist {
   TGraphAsymmErrors* GetGrCF() {
     return fGrCF;
   }
-  float GetNormLeft() const{return NormLeft;}
-  float GetNormRight() const{return NormRight;}
+  float GetNormLeft() const{return fNormLeft;}
+  float GetNormRight() const{return fNormRight;}
 
   void WriteOutput(TList *Outlist) {
     Outlist->Add(fSE);
@@ -74,7 +74,7 @@ class DreamDist {
   TH2F* fMEMult;
   TH1F* fCF;
   TGraphAsymmErrors *fGrCF;
-  float NormLeft,NormRight;
+  float fNormLeft,fNormRight;
 
 };
 

@@ -14,9 +14,9 @@ DreamDist::DreamDist()
       fME(nullptr),
       fMEMult(nullptr),
       fCF(nullptr),
-      fGrCF(nullptr) {
-  NormLeft=-1;
-  NormRight=-1;
+      fGrCF(nullptr),
+      fNormLeft(-1),
+      fNormRight(-1) {
 }
 DreamDist::DreamDist(DreamDist* pair, const char* name)
     : fSE(nullptr),
@@ -24,15 +24,15 @@ DreamDist::DreamDist(DreamDist* pair, const char* name)
       fME(nullptr),
       fMEMult(nullptr),
       fCF(nullptr),
-      fGrCF(nullptr) {
+      fGrCF(nullptr),
+      fNormLeft(-1),
+      fNormRight(-1) {
   this->SetSEDist(pair->GetSEDist(), name);
   if (pair->GetSEMultDist())
     this->SetSEMultDist(pair->GetSEMultDist(), name);
   this->SetMEDist(pair->GetMEDist(), name);
   if (pair->GetMEMultDist())
     this->SetMEMultDist(pair->GetMEMultDist(), name);
-  NormLeft=-1;
-  NormRight=-1;
 }
 
 DreamDist::~DreamDist() {
@@ -79,8 +79,8 @@ void DreamDist::Calculate_CF(float normleft, float normright,
     fGrCF = new TGraphAsymmErrors(fCF);
     fGrCF->Set(0);
 
-    NormLeft = normleft;
-    NormRight = normright;
+    fNormLeft = normleft;
+    fNormRight = normright;
     Double_t norm_relK = 0;
     double IntegralSE = fSE->Integral(fSE->FindBin(normleft),
                                       fSE->FindBin(normright));

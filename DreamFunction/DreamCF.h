@@ -27,6 +27,7 @@ class DreamCF {
   }
   ;
   void GetCorrelations(const char* pairName = "");
+  void GetCorrelationsSingle(const char *pairName = "");
   void LoopCorrelations(std::vector<DreamDist*> PairOne,
                         std::vector<DreamDist*> PairTwo, const char* name);
   void LoopCorrelations(std::vector<DreamDist*> Pair, const char* name);
@@ -35,6 +36,7 @@ class DreamCF {
   //required of rebinned data!
   TH1F* AddCF(DreamDist* DD1, DreamDist* DD2, const char* name);
   TH1F* AddCF(TH1F* CF1, TH1F* CF2, const char* name);
+  TH1F *SingleCF(TH1F *CF1, const char *name);
   static TGraphAsymmErrors* AddCF(TH1F* histSum, std::vector<DreamPair*> pairs, const char* name);
   static TH1F* ConvertToOtherUnit(TH1F* HistCF, int Scale, const char* name);
   static TGraphAsymmErrors* ConvertToOtherUnit(TGraphAsymmErrors* HistCF, int Scale, const char* name);

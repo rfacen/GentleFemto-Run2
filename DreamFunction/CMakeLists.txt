@@ -146,3 +146,9 @@ target_link_libraries(executeD DreamFunctions)
 
 add_executable(executeDDeltaEtaDeltaPhi ${PROJECT_SOURCE_DIR}/Scripts/ExecuteDmesonDeltaEtaDeltaPhi.C)
 target_link_libraries(executeDDeltaEtaDeltaPhi DreamFunctions)
+
+add_executable(executeLambdaPhi ${PROJECT_SOURCE_DIR}/Scripts/ExecuteLambdaPhi.C)
+target_link_libraries(executeLambdaPhi DreamFunctions)
+
+add_executable(executeLambdaKaon ${PROJECT_SOURCE_DIR}/Scripts/ExecuteLambdaKaon.C)
+target_link_libraries(executeLambdaKaon DreamFunctions)

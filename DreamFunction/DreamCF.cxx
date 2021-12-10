@@ -112,6 +112,39 @@ void DreamCF::GetCorrelations(const char* pairName) {
   return;
 }
 
+void DreamCF::GetCorrelationsSingle(const char *pairName)
+{
+  if (fPairOne && fPairOne->GetPair())
+  {
+    TH1F *CFsingle = SingleCF(fPairOne->GetPair()->GetCF(), Form("hCkTotNormWeight%s", pairName));
+    if (CFsingle)
+    {
+      fCF.push_back(CFsingle);
+      TString CFsingleMeVName = Form("%sMeV", CFsingle->GetName());
+      TH1F *CFMeVSingle = ConvertToOtherUnit(CFsingle, 1000, CFsingleMeVName.Data());
+      if (CFMeVSingle)
+      {
+        fCF.push_back(CFMeVSingle);
+      }
+    }
+    else
+    {
+      Warning("DreamCF", "No Pair 2 Set, only setting Pair 1!");
+      //existence already checked
+      fCF.push_back(fPairOne->GetPair()->GetCF());
+      fGrCF.push_back(fPairOne->GetPair()->GetGrCF());
+    }
+  }
+  LoopCorrelations(fPairOne->GetShiftedEmpty(),
+                   Form("hCk_Shifted%s", pairName));
+  LoopCorrelations(fPairOne->GetFixShifted(),
+                   Form("hCk_FixShifted%s", pairName));
+  LoopCorrelations(fPairOne->GetRebinned(), Form("hCk_Rebinned%s", pairName));
+  LoopCorrelations(fPairOne->GetReweighted(),
+                   Form("hCk_Reweighted%s", pairName));
+  return;
+}
+
 void DreamCF::LoopCorrelations(std::vector<DreamDist*> PairOne,
                                std::vector<DreamDist*> PairTwo,
                                const char* name) {
@@ -232,6 +265,13 @@ void DreamCF::WriteOutput(TFile* output, bool closeFile) {
   if (closeFile)
     output->Close();
   return;
+}
+
+TH1F *DreamCF::SingleCF(TH1F *CF1, const char *name)
+{
+  TH1F *hist_CF_sum = nullptr;
+  hist_CF_sum = (TH1F *)CF1->Clone(name);
+  return hist_CF_sum;
 }
 
 TH1F* DreamCF::AddCF(DreamDist* DD1, DreamDist* DD2, const char* name) {

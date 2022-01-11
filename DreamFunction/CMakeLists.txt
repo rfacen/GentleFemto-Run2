@@ -142,6 +142,13 @@ add_executable(executeDPhiDEtaAncestors ${PROJECT_SOURCE_DIR}/Scripts/ExecuteDPh
 target_link_libraries(executeDPhiDEtaAncestors DreamFunctions)
 
 add_executable(executeD ${PROJECT_SOURCE_DIR}/Scripts/ExecuteDmeson.C)
+
+add_executable(executeDK ${PROJECT_SOURCE_DIR}/Scripts/ExecuteDmesonKaon.C)
+target_link_libraries(executeDK DreamFunctions)
+
+add_executable(executeDPi ${PROJECT_SOURCE_DIR}/Scripts/ExecuteDmesonPion.C)
+target_link_libraries(executeDPi DreamFunctions)
+
 target_link_libraries(executeD DreamFunctions)
 
 add_executable(executeDDeltaEtaDeltaPhi ${PROJECT_SOURCE_DIR}/Scripts/ExecuteDmesonDeltaEtaDeltaPhi.C)

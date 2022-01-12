@@ -11,3 +11,5 @@
 .project
 *~
 Makefile
+*.DS_Store
+.git_ignore

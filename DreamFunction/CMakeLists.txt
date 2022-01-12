@@ -159,3 +159,6 @@ target_link_libraries(executeLambdaPhi DreamFunctions)
 
 add_executable(executeLambdaKaon ${PROJECT_SOURCE_DIR}/Scripts/ExecuteLambdaKaon.C)
 target_link_libraries(executeLambdaKaon DreamFunctions)
+
+add_executable(executeBenchmark ${PROJECT_SOURCE_DIR}/Scripts/ExecuteCFDreamBenchmark.C)
+target_link_libraries(executeBenchmark DreamFunctions)

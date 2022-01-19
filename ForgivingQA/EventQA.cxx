@@ -44,6 +44,17 @@ void EventQA::PlotCutCounter() {
   fHairyPlotter->DrawAndStore( { cutStats }, "Evt_CutStats");
 }
 
+void EventQA::PlotEventCounter(const char *prefix, const char *addon)
+{
+  auto *cutEvtsStats = (TH1D *)fReader->Get1DHistInList(fEventCuts, "EventCounter");
+  if (!cutEvtsStats)
+  {
+    std::cerr << "PlotEventCounter: No EventCounter Hist\n";
+  }
+  fHairyPlotter->FormatHistogram(cutEvtsStats, fStyler);
+  fHairyPlotter->DrawAndStore({cutEvtsStats}, "EventCounter");
+}
+
 void EventQA::PlotEventProperties(unsigned int multMax) {
   //Method also Sets the Number of Events!
 

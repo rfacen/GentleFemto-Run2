@@ -13,69 +13,89 @@
 #include "TCanvas.h"
 #include "TFitResultPtr.h"
 
-class ForgivingFitter {
- public:
+class ForgivingFitter
+{
+public:
   ForgivingFitter();
   virtual ~ForgivingFitter();
-  void FitInvariantMass(TH1F* histo, float massCutMin, float massCutMax, int signalColor, int backgroundColor);
+  void FitInvariantMass(TH1F *histo, float massCutMin, float massCutMax, int signalColor, int backgroundColor);
   void SetRanges(float SigMin, float SigMax, float BkgRangeMin,
                  float BkgRangeMax);
   void SetRangesSigma(float SigMin, float SigMax, float BkgRangeMin,
                       float BkgRangeMax);
-  int GetSignalCounts() const {
+  void SetRangesPhi(float SigMin, float SigMax, float BkgRangeMin,
+                    float BkgRangeMax);
+  int GetSignalCounts() const
+  {
     return fSignalCounts;
-  }
-  ;
-  int GetSignalCountsErr() const {
+  };
+  int GetSignalCountsErr() const
+  {
     return fSignalCountsErr;
   }
-  int GetBackgroundCounts() const {
+  int GetBackgroundCounts() const
+  {
     return fBackgroundCounts;
-  }
-  ;
-  int GetBackgroundCountsErr() const {
+  };
+  int GetBackgroundCountsErr() const
+  {
     return fBackgroundCountsErr;
   }
   double GetPurity() const;
   double GetPurityErr() const;
-  float GetMeanMass() const {
+  float GetMeanMass() const
+  {
     return fMeanMass;
   }
-  float GetMeanWidth() const {
+  float GetMeanWidth() const
+  {
     return fMeanWidth;
   }
-  float GetMeanMassErr() const {
+  float GetMeanMassErr() const
+  {
     return fMeanMassErr;
   }
-  float GetMeanWidthErr() const {
+  float GetMeanWidthErr() const
+  {
     return fMeanWidthErr;
   }
-  void ShittyInvariantMass(TH1F* histo, TPad* c1, float pTMin, float pTMax,
-                           const char* part);
-  void FitInvariantMassSigma(TH1F* histo, float massCuts, int signalColor, int backgroundColor);
-  TF1* GetBackgroundFunction() const { return fContinousBackGround; }
-  TF1* GetSingleGaussian() const { return fSingleGaussian; }
-  TF1* GetDoubleGaussian() const { return fDoubleGaussian; }
-  TF1* GetFullFitFunction() const { return fFullFitFnct; }
- private:
+  void ShittyInvariantMass(TH1F *histo, TPad *c1, float pTMin, float pTMax,
+                           const char *part);
+  void FitInvariantMassSigma(TH1F *histo, float massCuts, int signalColor, int backgroundColor);
+  void FitInvariantMassPhi(TH1F *histo, float massCuts, int signalColor, int backgroundColor, int signalOnlyColor);
+
+  TF1 *GetBackgroundFunction() const { return fContinousBackGround; }
+  TF1 *GetSingleGaussian() const { return fSingleGaussian; }
+  TF1 *GetDoubleGaussian() const { return fDoubleGaussian; }
+  TF1 *GetVoigt() const { return fVoigt; }
+  TF1 *GetFullFitFunction() const { return fFullFitFnct; }
+
+private:
   void CreateBackgroundFunction();
   void CreateContinousBackgroundFunction();
   void CreateSignalFunctions();
-  void CreateFullFitFunction(TH1F* targetHisto);
-  void SetStartParsDoubleGaussian(TH1F* targetHisto);
+  void CreateFullFitFunction(TH1F *targetHisto);
+  void CreateFullFitFunctionVoigt(TH1F *targetHisto, TF1 *funback);
+  void SetStartParsDoubleGaussian(TH1F *targetHisto);
+  void SetStartParsVoigt(TH1F *targetHisto, double mass, double sigma, double decwidth);
   float weightedMeanError(float weightA, float A, float weightB, float B,
                           float weightAErr, float AErr, float weightBErr,
                           float BErr);
   float weightedMean(float weightA, float A, float weightB, float B);
   TH1F *getSignalHisto(TF1 *function, TH1F *histo, float rangeLow,
                        float rangeHigh, const char *name);
-  void CalculateBackgorund(TH1F* targetHisto, float massCutMin,
+  void CalculateBackgorund(TH1F *targetHisto, float massCutMin,
                            float massCutMax, int backgroundColor, TFitResultPtr ptr);
-  TF1* fBackGround;
-  TF1* fContinousBackGround;
-  TF1* fSingleGaussian;
-  TF1* fDoubleGaussian;
-  TF1* fFullFitFnct;
+  void CalculateBackgorundVoigt(TH1F *targetHisto, float massCutMin,
+                                float massCutMax, int backgroundColor, TFitResultPtr ptr);
+  void CalculateSignalVoigt(TH1F *targetHisto, int backgroundColor);
+
+  TF1 *fBackGround;
+  TF1 *fContinousBackGround;
+  TF1 *fSingleGaussian;
+  TF1 *fDoubleGaussian;
+  TF1 *fVoigt;
+  TF1 *fFullFitFnct;
   bool fRangesSet;
   float fBkgRangeMin;
   float fBkgRangeMax;
@@ -93,19 +113,22 @@ class ForgivingFitter {
   double fMeanWidthErr;
 };
 
-inline
-double ForgivingFitter::GetPurity() const {
+inline double ForgivingFitter::GetPurity() const
+{
   const double signal = static_cast<double>(fSignalCounts);
   const double bck = static_cast<double>(fBackgroundCounts);
-  if (bck < 1E-6) {
+  if (bck < 1E-6)
+  {
     return 0;
-  } else {
+  }
+  else
+  {
     return signal / (signal + bck);
   }
 }
 
-inline
-double ForgivingFitter::GetPurityErr() const {
+inline double ForgivingFitter::GetPurityErr() const
+{
   const double signal = static_cast<double>(fSignalCounts);
   const double bck = static_cast<double>(fBackgroundCounts);
   const double signalErr = static_cast<double>(fSignalCountsErr);
@@ -113,12 +136,14 @@ double ForgivingFitter::GetPurityErr() const {
   const double signalBck = signal + bck;
   const double signalBckForth = signalBck * signalBck * signalBck * signalBck;
   std::cout << "signalErr: " << signalErr << " bckErr: " << bckErr << std::endl;
-  if (bck < 1E-6) {
+  if (bck < 1E-6)
+  {
     return 0;
-  } else {
+  }
+  else
+  {
     return std::sqrt(
-        signalErr * signalErr * bck * bck / signalBckForth
-            + bckErr * bckErr * signal * signal / signalBckForth);
+        signalErr * signalErr * bck * bck / signalBckForth + bckErr * bckErr * signal * signal / signalBckForth);
   }
 }
 #endif /* FORGIVINGQA_FORGIVINGFITTER_H_ */

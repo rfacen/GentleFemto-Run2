@@ -22,9 +22,13 @@ class TrackQA {
   void PlotPID();
   void PlotPID(TList* cuts, const char* outname);
   void PlotKinematicTracks();
+  void PlotKinematicTracks(const char *outname);
   void PlotPIDTracks();
+  void PlotPIDTracks(const char *outname);
   void PlotKinematicAntiTracks();
+  void PlotKinematicAntiTracks(const char *outname);
   void PlotPIDAntiTracks();
+  void PlotPIDAntiTracks(const char *outname);
   int GetNumberOfTracks() const;
   void SetTrackCuts(TList* trkCuts) {
     fTrackCuts = trkCuts;

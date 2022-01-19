@@ -314,13 +314,113 @@ void DecayQA::FitInvariantMass(TH2F* invMasspT, float CutMin, float CutMax,
     fHairyPlotter->DrawLine(CurrentPad, CutMax, CutMax, 0,
                             peakVal * 0.85, fStyler.drawLineColor);
     Purity->SetBinContent(ipT, fFitter->GetPurity());
-    Purity->SetBinError(ipT, fFitter->GetPurityErr()); 
+    Purity->SetBinError(ipT, fFitter->GetPurityErr());
   }
   Purity->GetYaxis()->SetRangeUser(0.7, 1.1);
   cMassBins->SaveAs(Form("InvMasspT_%s.pdf", outname));
   fHairyPlotter->DumpToFile(cMassBins, nullptr, Form("InvMasspT_%s", outname));
   fHairyPlotter->FormatHistogram(Purity, fStyler.drawMarker, fStyler.drawColor, 1.5);
   fHairyPlotter->DrawAndStore( { Purity }, Form("Purity%s", outname), "P");
+}
+void DecayQA::FitInvariantMassPhi(TH2F *invMasspT, float massCuts,
+                                  const char *outname)
+{
+  //First project the whole thing into one bin
+  auto *cMassIntegrated = new TCanvas(Form("cInt%s", outname),
+                                      Form("cInt%s", outname));
+  auto *invMass = (TH1F *)invMasspT->ProjectionY(Form("InvMass%s", outname), 0, -1, "e");
+  TPad *intPad = (TPad *)cMassIntegrated->cd();
+  fFitter->FitInvariantMassPhi(invMass, massCuts, fStyler.drawSignalFitColor, fStyler.drawBackgroundFitColor, fStyler.drawSignalOnlyColor);
+  const double CutMin = fFitter->GetMeanMass() - massCuts;
+  const double CutMax = fFitter->GetMeanMass() + massCuts;
+  invMass->GetXaxis()->SetRangeUser(0.98 * CutMin, 1.02 * CutMax);
+  invMass->GetYaxis()->SetRangeUser(0, invMass->GetMaximum() * 2.2);
+  invMass->GetYaxis()->SetTitle("d#it{N}/d#it{M} (GeV/#it{c}^{2})^{-1}");
+  invMass->GetXaxis()->SetTitle(Form("#it{M}_{%s} (GeV/#it{c}^{2})", fDecChannel));
+  double peakVal = invMass->GetBinContent(invMass->GetXaxis()->FindBin(fFitter->GetMeanMass()));
+  fHairyPlotter->FormatHistogram(invMass, fStyler);
+  fHairyPlotter->DrawOnPad({invMass}, intPad, "P");
+  fHairyPlotter->DrawLatexLabel(invMasspT->GetXaxis()->GetBinLowEdge(fInvMassPtStartBin), invMasspT->GetXaxis()->GetXmax(), fFitter, intPad, fPartLatex, 0.8, 0.45);
+  float signal = (float)fFitter->GetSignalCounts();
+  float background = (float)fFitter->GetBackgroundCounts();
+  fIntegratedPurities.push_back(signal / (signal + background));
+  fHairyPlotter->DrawLine(intPad, CutMin, CutMin, 0, peakVal * 0.85, fStyler.drawLineColor);
+  fHairyPlotter->DrawLine(intPad, CutMax, CutMax, 0, peakVal * 0.85, fStyler.drawLineColor);
+  cMassIntegrated->SaveAs(Form("InvInt%s.pdf", outname));
+  fHairyPlotter->DumpToFile(cMassIntegrated, invMass, Form("InvInt%s", outname));
+
+  auto *cMassBins = new TCanvas(Form("c%s", outname), Form("c%s", outname));
+  cMassBins->Divide(fDivCanX, fDivCanY);
+  if (invMasspT->GetXaxis()->GetNbins() > fDivCanX * fDivCanY)
+  {
+    std::cerr << "FitInvariantMass: Number of divisions not sufficient"
+                 " to plot all pT bins: \n"
+              << "pT Bins: " << invMasspT->GetXaxis()->GetNbins() << '\n';
+  }
+  auto *Purity = new TH1F(Form("%sPurity", outname), Form("%sPurity", outname),
+                          invMasspT->GetXaxis()->GetNbins(),
+                          invMasspT->GetXaxis()->GetXmin(),
+                          invMasspT->GetXaxis()->GetXmax());
+  Purity->GetXaxis()->SetTitle("#it{p}_{T} (GeV/#it{c})");
+  Purity->GetYaxis()->SetTitle(Form("Purity / %.1f (GeV/#it{c})^{-1}", Purity->GetBinWidth(1)));
+  for (int ipT = fInvMassPtStartBin;
+       ipT < invMasspT->GetXaxis()->GetNbins() + 1; ++ipT)
+  {
+    unsigned int iPad = 0;
+    if (fInvMassPtStartBin != 1)
+    {
+      iPad = ipT - fInvMassPtStartBin + 1;
+    }
+    else
+    {
+      iPad = ipT;
+    }
+    TPad *CurrentPad = (TPad *)cMassBins->cd(iPad);
+    CurrentPad->SetTopMargin(0.08);
+    CurrentPad->SetRightMargin(0.03);
+    auto invMasspTBin = (TH1F *)invMasspT->ProjectionY(Form("%sInvMasspT%u", outname, ipT), ipT, ipT, "e");
+    fFitter->FitInvariantMassPhi(invMasspTBin, massCuts, fStyler.drawSignalFitColor, fStyler.drawBackgroundFitColor, fStyler.drawSignalOnlyColor);
+    const double CutMinpT = fFitter->GetMeanMass() - massCuts;
+    const double CutMaxpT = fFitter->GetMeanMass() + massCuts;
+    double peakValPt = invMasspTBin->GetBinContent(invMasspTBin->GetXaxis()->FindBin(fFitter->GetMeanMass()));
+    invMasspTBin->GetXaxis()->SetRangeUser(1.003, 1.01 * CutMaxpT);
+    invMasspTBin->GetYaxis()->SetRangeUser(0, peakValPt * 2.2);
+    invMasspTBin->GetXaxis()->SetTitle(Form("#it{M}_{%s} (GeV/#it{c}^{2})", fDecChannel));
+    peakVal = invMasspTBin->GetBinContent(invMasspTBin->GetXaxis()->FindBin(fFitter->GetMeanMass()));
+    invMasspTBin->GetXaxis()->SetNdivisions(505);
+    invMasspTBin->GetYaxis()->SetNdivisions(210);
+    invMasspTBin->GetYaxis()->SetDecimals();
+    invMasspTBin->GetXaxis()->SetDecimals();
+    fHairyPlotter->FormatSmallHistogram(invMasspTBin, fStyler.drawMarker, fStyler.drawColor, 0.7);
+    fHairyPlotter->DrawOnPad({invMasspTBin}, CurrentPad, "P");
+    float signalpt = (float)fFitter->GetSignalCounts();
+    float backgroundpt = (float)fFitter->GetBackgroundCounts();
+    fIntegratedPurities.push_back(signalpt / (signalpt + backgroundpt));
+    fHairyPlotter->DrawLatexLabel(invMasspT->GetXaxis()->GetBinLowEdge(ipT),
+                                  invMasspT->GetXaxis()->GetBinUpEdge(ipT),
+                                  fFitter, CurrentPad, fPartLatex, 0.8,
+                                  0.45, 0.07);
+    fHairyPlotter->DrawLine(CurrentPad, CutMinpT, CutMinpT, 0,
+                            peakVal * 0.85, fStyler.drawLineColor);
+    fHairyPlotter->DrawLine(CurrentPad, CutMaxpT, CutMaxpT, 0,
+                            peakVal * 0.85, fStyler.drawLineColor);
+    Purity->SetBinContent(ipT, fFitter->GetPurity());
+    Purity->SetBinError(ipT, fFitter->GetPurityErr());
+  }
+  Purity->GetYaxis()->SetRangeUser(0.33, 1.1);
+  cMassBins->SaveAs(Form("InvMasspT_%s.pdf", outname));
+  fHairyPlotter->DumpToFile(cMassBins, nullptr, Form("InvMasspT_%s", outname));
+  fHairyPlotter->FormatHistogram(Purity, fStyler.drawMarker, fStyler.drawColor, 1.5);
+  fHairyPlotter->DrawAndStore({Purity}, Form("Purity%s", outname), "P");
+}
+
+void DecayQA::InvariantMassPartPhi(float MassCuts)
+{
+  const char *listName = "v0Cuts";
+  auto invMassPart = (TH2F *)fReader->Get2DHistInList(
+      fReader->GetListInList(fDecayCuts, {listName}), "InvMassPt");
+  invMassPart->RebinX(10);
+  FitInvariantMassPhi(invMassPart, MassCuts, "Phi");
 }
 
 void DecayQA::FitInvariantMassSigma0(TH2F* invMasspT, float massCuts,

@@ -29,6 +29,7 @@ class EventQA {
   void MakeEventQA();
   void SetStyler(DrawStyle styler) { fStyler = styler; }
   void PlotCutCounter();
+  void PlotEventCounter(const char *prefix, const char *addon);
   void SetTightMargin() {
     fHairyPlotter->SetTightMargin(true);
   }

@@ -60,3 +60,9 @@ target_link_libraries(timeForBBarQA ForgivingFnct)
 
 add_executable(LambdaPhiQA ${PROJECT_SOURCE_DIR}/Scripts/MakeLambdaPhiQA.C)
 target_link_libraries(LambdaPhiQA ForgivingFnct)
+
+add_executable(LambdaKaonQA ${PROJECT_SOURCE_DIR}/Scripts/MakeLambdaKaonQA.C)
+target_link_libraries(LambdaKaonQA ForgivingFnct)
+
+add_executable(LambdaKaonRossanaQA ${PROJECT_SOURCE_DIR}/Scripts/MakeLambdaKaonRossanaQA.C)
+target_link_libraries(LambdaKaonRossanaQA ForgivingFnct)

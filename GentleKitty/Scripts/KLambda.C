@@ -207,7 +207,7 @@ int main(int argc, char* argv[]) {
 
   int i=0;
 
-  auto outfile = new TFile(TString::Format("/home/rossanafacen/Analysis/LambdaKaon/TestTask_nosph/Fit/%s_Fit_charge1.root", pair[i]), "RECREATE");   
+  auto outfile = new TFile(TString::Format("/home/rossanafacen/Analysis/LambdaKaon/TestTask_nosph/Fit/%s/%s_Fit.root", pair[i], pair[i]), "RECREATE");   
 
   //CF of HM
   auto *file_CF = TFile::Open(TString::Format("%s/%s/CFOutput_%s_00_norm_%.2f-%.2f.root", path_CF, norm[i], pair[i], norm1[i], norm1[i+2])); //it opens the analysis results
@@ -215,8 +215,8 @@ int main(int argc, char* argv[]) {
   
 
   //common and uncommon CF
-  auto *file_common = TFile::Open(TString::Format("%s/CFOutput_%s_0_norm_%.2f-%.2f_Common.root", path_ancestors, pair[0], norm1[0], norm1[0+2]));
-  auto *file_uncommon = TFile::Open(TString::Format("%s/CFOutput_%s_0_norm_%.2f-%.2f_Uncommon.root", path_ancestors, pair[0], norm1[0], norm1[0+2])); //it opens the analysis results
+  auto *file_common = TFile::Open(TString::Format("%s/CFOutput_%s_0_norm_%.2f-%.2f_Common.root", path_ancestors, pair[i], norm1[i], norm1[i+2]));
+  auto *file_uncommon = TFile::Open(TString::Format("%s/CFOutput_%s_0_norm_%.2f-%.2f_Uncommon.root", path_ancestors, pair[i], norm1[i], norm1[i+2])); //it opens the analysis results
   //take a histogram from the root file of CF
   auto *h_MC_Common = (TH1F *)file_common->FindObjectAny("hCk_ReweightedMeV_1"); 
   auto *h_MC_NonCommon = (TH1F *)file_uncommon->FindObjectAny("hCk_ReweightedMeV_1"); 
@@ -319,7 +319,6 @@ int main(int argc, char* argv[]) {
   
   h_MC_Common->Fit(fTemplate_MC_Common," S, N, R, M", 0, 2500);
   
-
   outfile->cd();
   fTemplate_MC_Common->Write("Fit Common");
   fTemplate_MC_Common->SetLineColor(kRed + 2);
@@ -379,16 +378,16 @@ int main(int argc, char* argv[]) {
   TCanvas *c_common_data = new TCanvas();
   h_MC_NonCommon->Draw("");
   h_MC_Common->Draw("same");
-  auto legend = new TLegend(0.65, 0.7, 0.85, 0.85, NULL, "brNDC");
+  auto legend = new TLegend(0.65, 0.7, 0.88, 0.88, NULL, "brNDC");
   legend->AddEntry(h_MC_Common, "Common Ancestors", "l");
   legend->AddEntry(h_MC_NonCommon, "Uncommon Ancestors", "l");
+  legend->SetTextSize(gStyle->GetTextSize()*0.55);
   legend->Draw();
   h_MC_NonCommon->GetXaxis()->SetRangeUser(0, 1800);
   h_MC_NonCommon->GetYaxis()->SetRangeUser(0.4, 1.3);
-  h_MC_NonCommon->GetXaxis()->SetTitle("k* (MeV/c)");
-  h_MC_NonCommon->GetYaxis()->SetTitle("C(k*)");
+  h_MC_NonCommon->SetTitle("; k* (MeV/c); C(k*)");
   gStyle->SetOptStat(0);
-  c_common_data->Print("/home/rossanafacen/Analysis/LambdaKaon/TestTask_nosph/Fit/Common_data.pdf");
+  c_common_data->Print(TString::Format("/home/rossanafacen/Analysis/LambdaKaon/TestTask_nosph/Fit/%s/Common_data_%s.pdf", pair[i], pair[i]));
 
   TCanvas *c_common_fit = new TCanvas();
   fTemplate_MC_NonCommon->Draw("");
@@ -397,13 +396,14 @@ int main(int argc, char* argv[]) {
   h_MC_Common->Draw("same");
   fTemplate_MC_NonCommon->GetXaxis()->SetRangeUser(0, 1800);
   fTemplate_MC_NonCommon->GetYaxis()->SetRangeUser(0.4, 1.3);
+  fTemplate_MC_NonCommon->SetTitle("; k* (MeV/c); C(k*)");
   
   legend->Draw();
   gStyle->SetOptStat(0);
-  c_common_fit->Print("/home/rossanafacen/Analysis/LambdaKaon/TestTask_nosph/Fit/Common_fit.pdf");
+  c_common_fit->Print(TString::Format("/home/rossanafacen/Analysis/LambdaKaon/TestTask_nosph/Fit/%s/Common_fit_%s.pdf", pair[i], pair[i]));
 
   //prefit of the background (with pol1 and pol2): i have 4 parameters free, and I take the template from common and uncommom
-  TF1* fPreFit_pol1 = new TF1("fPreFit_pol1", PreFit_pol1, 0, 2500, 4);
+  TF1* fPreFit_pol1 = new TF1("fPreFit_pol1", PreFit_pol1, 400, 2500, 4);
   fPreFit_pol1->SetParNames("N_d", "w_c", "a", "b");
 
   cout << "\n---------------------------------\n Prefit with pol1 \n--------------------------------\n" << endl;
@@ -416,7 +416,7 @@ int main(int argc, char* argv[]) {
   fPreFit_pol1->SetParLimits (1, 0, 1);
 
   //same thing, but for pol2  
-  TF1* fPreFit_pol2 = new TF1("fPreFit_pol2", PreFit_pol2, 0, 2500, 5);
+  TF1* fPreFit_pol2 = new TF1("fPreFit_pol2", PreFit_pol2, 400, 2500, 5);
   fPreFit_pol2->SetParameter(0, fPreFit_pol1->GetParameter(0));
   fPreFit_pol2->SetParameter(1, fPreFit_pol1->GetParameter(1));
   fPreFit_pol2->SetParameter(2, fPreFit_pol1->GetParameter(2));
@@ -462,8 +462,7 @@ int main(int argc, char* argv[]) {
   gPreFitfull_pol1->Draw("same");
   h_HM->GetXaxis()->SetRangeUser(0, 2500);
   h_HM->GetYaxis()->SetRangeUser(0.79, 1.06);
-  h_HM->GetXaxis()->SetTitle("k* (MeV/c)");
-  h_HM->GetYaxis()->SetTitle("C(k*)");
+  h_HM->SetTitle("; k* (MeV/c); C(k*)");
   auto legend2 = new TLegend(0.65, 0.65, 0.86, 0.86, NULL, "brNDC");
   legend2->AddEntry(h_HM, "Data", "LEP");
   legend2->AddEntry(gPreFitfull_pol1, "Full prefit with Pol1");
@@ -475,13 +474,14 @@ int main(int argc, char* argv[]) {
   gPreFitfull_pol1->SetLineWidth(2);
 
   c_prefit->Show();
-  c_prefit->Print("/home/rossanafacen/Analysis/LambdaKaon/TestTask_nosph/Fit/Prefit_total.pdf");
+  c_prefit->Print(TString::Format("/home/rossanafacen/Analysis/LambdaKaon/TestTask_nosph/Fit/%s/Prefit_total_%s.pdf", pair[i], pair[i]));
  
   int NumMomBins=50;
   int kMin=0;
   int kMax=800;
 
-//model the coulomb, which consists on K+ Xi-
+
+  //model the coulomb, which consists on K+ Xi-
   CATS catsXi; //catsXi is an object belonging to CATS class
   catsXi.SetMomBins(NumMomBins, kMin, kMax); //number of bins, and limits
   catsXi.SetUseAnalyticSource(true);
@@ -510,10 +510,7 @@ int main(int argc, char* argv[]) {
   FillCkGraph(catsXi, grXiCoulomb); //fill the XiCoulomb graph with catsXi values (in the form of a graph)
   grXiCoulomb->Write("Xi Coulomb before");
 
-
-  //from feeddown.cpp in downloads TODO a
   TString CalibBaseDir = "/home/rossanafacen/Analysis/LambdaKaon/TestTask_nosph";
-
   auto calibFile = TFile::Open(
       TString::Format("%s/KXi_KLmabda7.root", CalibBaseDir.Data()));
   auto histDecayKindematicsXi = (TH2F*) calibFile->Get("KXi_KLambda");  
@@ -521,28 +518,37 @@ int main(int argc, char* argv[]) {
 
   auto DLM_Xi = new DLM_Ck(1, 0, catsXi); //1: number of source patricles; 0: number of pot particles; cats object
   DLM_Xi->Update(); 
-
   const char *path_MC = "/home/rossanafacen/Analysis/LambdaKaon/TestTask_nosph/Classical/Trains/MC/";
   auto *file_MC = TFile::Open(TString::Format("%sAnalysisResults.root", path_MC));
 
-  TList *dirResults;
+  TList *dirResultsQA;
   
   //find and use the smear matrix, to compute the momentum resolution
-  TDirectoryFile *dir = (TDirectoryFile*)(file_MC->FindObjectAny("HMResultsQA00"));
-  dir->GetObject("HMResultsQA00", dirResults);
-  TList* PairQAList =  (TList*)dirResults->FindObject("PairQA");
-  TList* ParticlesList =  (TList*)PairQAList->FindObject("QA_Particle0_Particle2");
-  auto Smear_Matrix = (TH2F*)ParticlesList->FindObject("MomentumResolutionME_Particle0_Particle2");   
+  TDirectoryFile *dirQA = (TDirectoryFile*)(file_MC->FindObjectAny("HMResultsQA00"));
+  dirQA->GetObject("HMResultsQA00", dirResultsQA);
+  TList* PairQAList =  (TList*)dirResultsQA->FindObject("PairQA");
+  TList* ParticlesQAList =  (TList*)PairQAList->FindObject(TString::Format("QA_Particle%d_Particle%d", i, i+2));
+  auto Smear_Matrix = (TH2F*)ParticlesQAList->FindObject(TString::Format("MomentumResolutionME_Particle%d_Particle%d", i, i+2));   
 
   //transform to MeV the matrix
   auto Smear_transf = (TH2F*)TransformToMeV(Smear_Matrix);
   //cut the matrix up to 1000 MeV
   auto Smear_transf_cut = (TH2F*)CutMeV(Smear_transf);  
 
-  DLM_CkDecomposition CkDec_Xi_Smeared("KXi_smear", 2,
+  DLM_CkDecomposition CkDec_Xi_Smeared("KXi_smear", 0,
                                               *DLM_Xi,
                                               Smear_transf_cut);  //class which allows you to do a decomposition. 
                                               //title, numberofchilder, original Ck, matrix for the smearing
+  
+
+  TList *dirResults;
+  TDirectoryFile *dir = (TDirectoryFile*)(file_MC->FindObjectAny("HMResults00"));
+  dir->GetObject("HMResults00", dirResults);
+  TList* ParticlesList =  (TList*)dirResults->FindObject(TString::Format("Particle%d_Particle%d", i, i+2));
+  auto hME = (TH1F*)ParticlesList->FindObject(TString::Format("MEDist_Particle%d_Particle%d", i, i+2));   
+
+
+  CkDec_Xi_Smeared.AddPhaseSpace(hME);
   CkDec_Xi_Smeared.Update();  
 
 
@@ -564,32 +570,38 @@ int main(int argc, char* argv[]) {
 /*  LKFullCF.AddContribution(0, lCsicharged, DLM_CkDecomposition::cFeedDown,
                              &CkDec_Xi_Smeared, histDecayKindematicsXi); */
  LKFullCF.AddContribution(0, lCsicharged, DLM_CkDecomposition::cFeedDown,
-                             &CkDec_Xi_Smeared);
+                             &CkDec_Xi_Smeared,histDecayKindematicsXi);
  LKFullCF.AddContribution(1, lFlat, DLM_CkDecomposition::cFeedDown);
+
+  //LKFullCF.AddPhaseSpace(hME);
+  //LKFullCF.AddPhaseSpace(0,hME);
+
  LKFullCF.Update();
 
  FITTER_DECOMLedn = &LKFullCF;
 
+
+  
   //total function, using model*background (we already did a prefit before)
   unsigned NumberOfFitPars = 8;            
-  TF1* fitter = new TF1("fitter", fit_functionLedn, 0, 250, NumberOfFitPars);            
+  TF1* fitter = new TF1("fitter", fit_functionLedn, 0, 500, NumberOfFitPars);            
   fitter->SetParameter(0, scattlenRE);
-  fitter->SetParLimits(0, scattlenRE - scattlenRE*2, scattlenRE + scattlenRE*2);
   fitter->SetParameter(1, scattlenIM);            
-  fitter->SetParLimits(1, 0, 100);
   fitter->SetParameter(2, effrange);        
-  fitter->SetParLimits(2, effrange - effrange*2, effrange + effrange*2);
   fitter->SetParameter(3, fPreFit_pol2->GetParameter(0)); //constant of normalization           
   fitter->SetParameter(4, fPreFit_pol2->GetParameter(1)); //weight of common             
   fitter->FixParameter(5, fPreFit_pol2->GetParameter(2)); //pol2  coefficients, to be kept fixed from the perfit    
   fitter->FixParameter(6, fPreFit_pol2->GetParameter(3));      
   fitter->FixParameter(7, fPreFit_pol2->GetParameter(4)); 
   fitter->SetParNames("Re(f0)","Im(f0)","d0", "N_d", "w_c", "a", "b", "c");
-
+  
 
   cout << "\n---------------------------------\n Total fit \n--------------------------------\n" << endl;
-  int status= h_HM->Fit(fitter, "NR", "", 0, 250);
-
+  int status= h_HM->Fit(fitter, "NR", "", 0, 500);
+  
+  double chi_fitter = fitter->GetChisquare()/fitter->GetNDF();
+  cout << "Chi reduced total fit " << chi_fitter << endl;
+  
   outfile->cd();
 
   TGraph* gfitterfull = new TGraph();
@@ -607,25 +619,74 @@ int main(int argc, char* argv[]) {
   TCanvas *c_fitter = new TCanvas();
   h_HM->Draw("");
   fitter->Draw("same");
+  //gfitterfull->Draw("same");
   h_HM->GetXaxis()->SetRangeUser(0, 2500);
   h_HM->GetYaxis()->SetRangeUser(0.79, 1.06);
-  h_HM->GetXaxis()->SetTitle("k* (MeV/c)");
-  h_HM->GetYaxis()->SetTitle("C(k*)");
-  auto legend_fit = new TLegend(0.65, 0.65, 0.86, 0.86, NULL, "brNDC");
+  h_HM->SetTitle("; k* (MeV/c); C(k*)");
+  auto legend_fit = new TLegend(0.65, 0.65, 0.88, 0.88, NULL, "brNDC");
   legend_fit->AddEntry(h_HM, "Data", "LEP");
   legend_fit->AddEntry(fitter, "Fit with Lednicky");
   legend_fit->SetTextSize(gStyle->GetTextSize()*0.6); 
   legend_fit->Draw();
   c_fitter->Show();
-  c_fitter->Print("/home/rossanafacen/Analysis/LambdaKaon/TestTask_nosph/Fit/Lednic_fit.pdf");
+  c_fitter->Print(TString::Format("/home/rossanafacen/Analysis/LambdaKaon/TestTask_nosph/Fit/%s/Lednic_fit(2)_%s.pdf", pair[i], pair[i]));
+ 
 
+
+  TF1* fitter_pol1 = new TF1("fitter_pol1", fit_functionLedn, 0, 500, NumberOfFitPars-1);            
+  fitter_pol1->SetParameter(0, scattlenRE);
+  fitter_pol1->SetParameter(1, scattlenIM);            
+  fitter_pol1->SetParameter(2, effrange);        
+  fitter_pol1->SetParameter(3, fPreFit_pol1->GetParameter(0)); //constant of normalization           
+  fitter_pol1->SetParameter(4, fPreFit_pol1->GetParameter(1)); //weight of common             
+  fitter_pol1->FixParameter(5, fPreFit_pol1->GetParameter(2)); //pol2  coefficients, to be kept fixed from the perfit    
+  fitter_pol1->FixParameter(6, fPreFit_pol1->GetParameter(3));      
+  fitter_pol1->SetParNames("Re(f0)","Im(f0)","d0", "N_d", "w_c", "a", "b");
+  fitter_pol1->SetLineColor(kGreen);  
+
+  cout << "\n---------------------------------\n Total fit \n--------------------------------\n" << endl;
+  h_HM->Fit(fitter_pol1, "NR", "", 0, 500);
+  
+  double chi_fitter_pol1 = fitter_pol1->GetChisquare()/fitter_pol1->GetNDF();
+  cout << "Chi reduced total fit pol1: " << chi_fitter_pol1 << endl;
+  
+  outfile->cd();
+
+  TGraph* gfitterfull_pol1 = new TGraph();
+  gfitterfull_pol1->SetLineColor(fitter_pol1->GetLineColor());
+  gfitterfull_pol1->SetLineWidth(2);
+  gfitterfull_pol1->SetLineStyle(6);
+
+  for (int x = 0; x < 2500; x++){
+    double y = fitter_pol1->Eval(x);
+    gfitterfull_pol1->SetPoint(x,x,y);
+   }
+ 
+
+  TCanvas *c_fitter_pol1 = new TCanvas();
+  h_HM->Draw("");
+  fitter_pol1->Draw("same");
+  //gfitterfull->Draw("same");
+  h_HM->GetXaxis()->SetRangeUser(0, 2500);
+  h_HM->GetYaxis()->SetRangeUser(0.79, 1.06);
+  h_HM->SetTitle("; k* (MeV/c); C(k*)");
+  auto legend_fit_pol1 = new TLegend(0.65, 0.65, 0.88, 0.88, NULL, "brNDC");
+  legend_fit_pol1->AddEntry(h_HM, "Data", "LEP");
+  legend_fit_pol1->AddEntry(fitter_pol1, "Fit with Lednicky");
+  legend_fit_pol1->SetTextSize(gStyle->GetTextSize()*0.6); 
+  legend_fit_pol1->Draw();
+  c_fitter_pol1->Show();
+  c_fitter_pol1->Print(TString::Format("/home/rossanafacen/Analysis/LambdaKaon/TestTask_nosph/Fit/%s/Lednic_fit_pol1_%s.pdf", pair[i], pair[i]));
+ 
 
   Smear_Matrix->Write("Original Matrix");
   Smear_transf->Write("Matrix MeV transformed");
   Smear_transf_cut->Write("Matrix cut");
 
   fitter->Write("fitter");
+  fitter_pol1->Write("fitter_pol1");
   gfitterfull->Write("fitter full");
+  gfitterfull_pol1->Write("fitter full pol1");
   grXiCoulomb->Write();
   grXiSmeared->Write();
 
@@ -635,13 +696,10 @@ int main(int argc, char* argv[]) {
 
 
   //fit with Pb parameters
-  TF1* fitter_pb = new TF1("fitter_pb", fit_functionLedn, 0, 250, NumberOfFitPars);            
+  TF1* fitter_pb = new TF1("fitter_pb", fit_functionLedn, 0, 2500, NumberOfFitPars);            
   fitter_pb->FixParameter(0, scattlenRE_pb[i]);
-  fitter_pb->SetParLimits(0, scattlenRE_pb[i] - scattlenRE_pb_err[i], scattlenRE_pb [i] + scattlenRE_pb_err[i]);
   fitter_pb->FixParameter(1, scattlenIM_pb[i]);            
-  fitter_pb->SetParLimits(1, scattlenIM_pb[i] -scattlenIM_pb_err[i], scattlenIM_pb[i] + scattlenIM_pb_err[i]);
   fitter_pb->FixParameter(2, effrange_pb[i]);            
-  fitter_pb->SetParLimits(2, effrange_pb[i] - effrange_pb_err[i], effrange_pb[i] + effrange_pb_err[i]);
   fitter_pb->SetParameter(3, fPreFit_pol2->GetParameter(0)); //constant of normalization           
   fitter_pb->SetParameter(4, fPreFit_pol2->GetParameter(1)); //weight of common             
   fitter_pb->FixParameter(5, fPreFit_pol2->GetParameter(2)); //pol2  coefficients, to be kept fixed from the perfit    
@@ -650,7 +708,11 @@ int main(int argc, char* argv[]) {
   fitter_pb->SetParNames("Re(f0)_pb","Im(f0)_pb","d0_pb", "N_d", "w_c", "a", "b", "c");
 
   fitter_pb->SetLineColor(kAzure+7);
- 
+
+  h_HM->Fit(fitter_pb, "NR", "", 0, 2500);
+  double chi_fitter_pb = fitter_pb->GetChisquare()/fitter_pb->GetNDF();
+  cout << "chi square for pb parameters: " << chi_fitter_pb << endl;
+
   TGraph* gfitterfull_pb = new TGraph();
   gfitterfull_pb->SetLineColor(fitter_pb->GetLineColor());
   gfitterfull_pb->SetLineWidth(2);
@@ -667,15 +729,14 @@ int main(int argc, char* argv[]) {
   fitter_pb->Draw("same");
   h_HM->GetXaxis()->SetRangeUser(0, 2500);
   h_HM->GetYaxis()->SetRangeUser(0.87, 1.06);
-  h_HM->GetXaxis()->SetTitle("k* (MeV/c)");
-  h_HM->GetYaxis()->SetTitle("C(k*)");
+  h_HM->SetTitle("; k* (MeV/c); C(k*)");
   auto legend_fit_pb = new TLegend(0.65, 0.65, 0.86, 0.86, NULL, "brNDC");
   legend_fit_pb->AddEntry(h_HM, "Data", "LEP");
   legend_fit_pb->AddEntry(fitter_pb, "Fit with Pb parms");
   legend_fit_pb->SetTextSize(gStyle->GetTextSize()*0.6); 
   legend_fit_pb->Draw();
   c_fitter_pb->Show();
-  c_fitter_pb->Print("/home/rossanafacen/Analysis/LambdaKaon/TestTask_nosph/Fit/Pb_fit.pdf");
+  c_fitter_pb->Print(TString::Format("/home/rossanafacen/Analysis/LambdaKaon/TestTask_nosph/Fit/%s/Pb_fit_%s.pdf", pair[i], pair[i]));
 
 
   fitter_pb->Write("fitter pb");

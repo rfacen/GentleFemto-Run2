@@ -193,19 +193,36 @@ double fit_functionLedn(double* x, double* par) {
   auto histoOut = (TH1F *)histo->Clone(Form("bootstrap_%s_%i", histo->GetName(),int(gRandom->Uniform() * 10000.f)));
   static double xVal, yVal;
   
-  for (int i = 0; i < histo->GetNbinsX(); ++i)
+  for (int i = 1; i <= histo->GetNbinsX(); ++i)
   {
     //histo->GetPoint(i, xVal, yVal);
     yVal = histo->GetBinContent(i);
-    histoOut->Fill(i, gRandom->Gaus(yVal, histo->GetBinError(i)));
+    histoOut->SetBinContent(i, gRandom->Gaus(yVal, histo->GetBinError(i)));
   }
   return histoOut;
 }
 
 int main(int argc, char* argv[]) {
-  
-  
-  
+
+/*       //flag
+     char* fit   
+     if (fit == "pol2") {
+      cout << "Pol2" << endl;
+      systvar = false;
+
+  } else if (fit == "pol1") {
+      cout << "Pol1" << endl;
+      systvar = true;
+
+  } else if (fit == "pb ") {
+      cout << "Pb comparision" << endl;
+      evalchi2 = true;
+
+  } else {
+      cout<<"error"<<endl;
+  }
+ */
+
   //include the folders etc that we need
   const char* path_ancestors = "/home/rossanafacen/Analysis/LambdaKaon/TestTask_nosph/Common_Ancestors/Trains_MC";
   const char* path_CF = "/home/rossanafacen/Analysis/LambdaKaon/TestTask_nosph/Classical/Trains/HM";
@@ -320,22 +337,22 @@ int main(int argc, char* argv[]) {
     entries[uBin] = 0;
   }
   
-  int boot = 5;
+  int boot = 1000;
 
   //histograms which save the scattering parameters for every bootstrap
-  auto* Re_scatlen = new TH1F("Re_scatlen", "Re_scatlen", boot, -10.0, 10.0);
+  auto* Re_scatlen = new TH1F("Re_scatlen", "Re_scatlen", 30, -0.5, 0.5);
   Re_scatlen->GetXaxis()->SetTitle("Re(f_{0})");
   Re_scatlen->GetYaxis()->SetTitle("Entries");  
   
-  auto* Im_scatlen = new TH1F("Im_scatlen", "Im_scatlen", boot, -10.0, 10.0);
+  auto* Im_scatlen = new TH1F("Im_scatlen", "Im_scatlen", 30, 0, 0.3);
   Im_scatlen->GetXaxis()->SetTitle("Im(f_{0})");
   Im_scatlen->GetYaxis()->SetTitle("Entries");  
   
-  auto* effran = new TH1F("effran", "effran", boot, -20.0, 20.0);
+  auto* effran = new TH1F("effran", "effran", 30, -0, 1);
   effran->GetXaxis()->SetTitle("d_{0}");
   effran->GetYaxis()->SetTitle("Entries"); 
   
-  auto* chi2ndf = new TH1F("chi2ndf", "chi2ndf", boot, 0.0, 40.0);
+  auto* chi2ndf = new TH1F("chi2ndf", "chi2ndf", 10, 0.0, 40.0);
   chi2ndf->GetXaxis()->SetTitle("#Chi^{2}/ndf");
   chi2ndf->GetYaxis()->SetTitle("Entries");
 
@@ -430,7 +447,7 @@ int main(int argc, char* argv[]) {
       double chi_noncommon = fTemplate_MC_NonCommon->GetChisquare()/fTemplate_MC_NonCommon->GetNDF();
       cout<<"Chi2 reduced noncommon: "<<chi_noncommon<<endl;
 
-      TCanvas *c_common_data = new TCanvas();
+      /* TCanvas *c_common_data = new TCanvas();
       h_MC_NonCommon->Draw("");
       h_MC_Common->Draw("same");
       auto legend = new TLegend(0.65, 0.7, 0.88, 0.88, NULL, "brNDC");
@@ -443,8 +460,8 @@ int main(int argc, char* argv[]) {
       h_MC_NonCommon->SetTitle("; k* (MeV/c); C(k*)");
       gStyle->SetOptStat(0);
       c_common_data->Print(TString::Format("/home/rossanafacen/Analysis/LambdaKaon/TestTask_nosph/Fit/%s/Common_data_%s.pdf", pair[i], pair[i]));
-
-      TCanvas *c_common_fit = new TCanvas();
+ */
+     /*  TCanvas *c_common_fit = new TCanvas();
       fTemplate_MC_NonCommon->Draw("");
       fTemplate_MC_Common->Draw("same"); 
       h_MC_NonCommon->Draw("same");
@@ -456,6 +473,7 @@ int main(int argc, char* argv[]) {
       legend->Draw();
       gStyle->SetOptStat(0);
       c_common_fit->Print(TString::Format("/home/rossanafacen/Analysis/LambdaKaon/TestTask_nosph/Fit/%s/Common_fit_%s.pdf", pair[i], pair[i]));
+ */
 
       TGraph* gPreFitfull_pol1 = new TGraph();
       gPreFitfull_pol1->SetLineColor(kMagenta +2);
@@ -485,19 +503,7 @@ int main(int argc, char* argv[]) {
       fPreFit_pol2->SetParameter(1, fPreFit_pol1->GetParameter(1));
       fPreFit_pol2->SetParameter(2, fPreFit_pol1->GetParameter(2));
       fPreFit_pol2->SetParameter(3, fPreFit_pol1->GetParameter(3));
-      /* 1  N_d          5.72959e-01   7.85413e-03   9.65529e-04  -6.97740e+03 pol2
-      2  w_c          1.09201e-01   6.64415e-03  -2.43814e-03   2.03280e+02
-      3  a            7.72910e-01   2.40601e-02  -2.91859e-03  -2.40536e+03
-      4  b           -8.86169e-05   5.82773e-06  -1.31456e-07  -1.90232e+06
-      5  c            2.87159e-08   2.07805e-09   2.25354e-11  -1.87425e+09
-    */
 
-
-    /* 1  N_d          4.34279e-01   6.18244e-03  -6.27875e-03  -8.41717e+03 pol1
-      2  w_c          2.76263e-01   6.40300e-03   5.94781e-03   4.16712e+02
-      3  a            1.30927e+00   3.17767e-02   3.24213e-02  -1.69899e+03
-      4  b            4.88740e-06   1.27282e-06   9.87276e-07  -1.95429e+05
-    */
 
       fPreFit_pol2->SetLineColor(kGreen + 2); 
       fPreFit_pol2->SetParLimits(1, 5e-2, 1);
@@ -542,9 +548,9 @@ int main(int argc, char* argv[]) {
       gPreFitfull_pol1->SetLineColor(kMagenta +2);
       gPreFitfull_pol1->SetLineWidth(2);
 
-      c_prefit->Show();
+      /* c_prefit->Show();
       c_prefit->Print(TString::Format("/home/rossanafacen/Analysis/LambdaKaon/TestTask_nosph/Fit/%s/Prefit_total_%s.pdf", pair[i], pair[i]));
-    
+     */
       int NumMomBins=50;
       int kMin=0;
       int kMax=800;
@@ -638,9 +644,7 @@ int main(int argc, char* argv[]) {
 
       LKFullCF.AddContribution(0, lCsicharged, DLM_CkDecomposition::cFeedDown,
                                 &CkDec_Xi, histDecayKinematicsXi); //first contribution has the lambda parameter from csi
-    /*  LKFullCF.AddContribution(0, lCsicharged, DLM_CkDecomposition::cFeedDown,
-                                &CkDec_Xi_Smeared); */
-      LKFullCF.AddContribution(1, lFlat, DLM_CkDecomposition::cFeedDown); //second contribution has the lambda parameter for flat contribution
+     LKFullCF.AddContribution(1, lFlat, DLM_CkDecomposition::cFeedDown); //second contribution has the lambda parameter for flat contribution
 
       LKFullCF.AddPhaseSpace(hME); //
       LKFullCF.AddPhaseSpace(0,hME);
@@ -675,8 +679,7 @@ int main(int argc, char* argv[]) {
       Re_scatlen->Fill(fitter->GetParameter(0));
       Im_scatlen->Fill(fitter->GetParameter(1));
       effran->Fill(fitter->GetParameter(2));
-      //Re_scatlen->Write(TString::Format("Re Scatt length %d", j));
-
+    
 
       //we save y results, that s different for every bootstrap
       for (int i_save = 0; i_save < h_HM->GetNbinsX(); i_save++){
@@ -714,7 +717,7 @@ int main(int argc, char* argv[]) {
       fitter_bg->SetLineColor(fitter->GetLineColor());
       fitter_bg->SetLineStyle(6);
 
-      TCanvas *c_fitter = new TCanvas();
+     /*  TCanvas *c_fitter = new TCanvas();
       h_HM->Draw("");
       fitter->Draw("same");
       fitter_bg->Draw("same");
@@ -729,7 +732,7 @@ int main(int argc, char* argv[]) {
       legend_fit->Draw();
       c_fitter->Show();
       c_fitter->Print(TString::Format("/home/rossanafacen/Analysis/LambdaKaon/TestTask_nosph/Fit/%s/Lednic_fit_bg_%s.pdf", pair[i], pair[i]));
-    
+     */
 
       TF1* fitter_pol1 = new TF1("fitter_pol1", fit_functionLedn, 0, 500, NumberOfFitPars);            
       fitter_pol1->SetParameter(0, scattlenRE);
@@ -780,7 +783,7 @@ int main(int argc, char* argv[]) {
       fitter_bg_pol1->SetLineColor(fitter_pol1->GetLineColor());
       fitter_bg_pol1->SetLineStyle(6);
 
-      TCanvas *c_fitter_pol1 = new TCanvas();
+     /*  TCanvas *c_fitter_pol1 = new TCanvas();
       h_HM->Draw("");
       fitter_pol1->Draw("same");
       fitter_bg_pol1->Draw("same");
@@ -796,16 +799,16 @@ int main(int argc, char* argv[]) {
       legend_fit_pol1->Draw();
       c_fitter_pol1->Show();
       c_fitter_pol1->Print(TString::Format("/home/rossanafacen/Analysis/LambdaKaon/TestTask_nosph/Fit/%s/Lednic_fit_pol1_%s.pdf", pair[i], pair[i]));
-    
+     */
 
       Smear_Matrix->Write("Original Matrix");
       Smear_transf->Write("Matrix MeV transformed");
       Smear_transf_cut->Write("Matrix cut");
 
-      TCanvas *c_matrix = new TCanvas();
+      /* TCanvas *c_matrix = new TCanvas();
       Smear_transf_cut->Draw("");
       c_matrix->Print(TString::Format("/home/rossanafacen/Analysis/LambdaKaon/TestTask_nosph/Fit/%s/Smear matrix.pdf", pair[i]));
-
+ */
 
       fitter->Write("fitter");
       fitter_pol1->Write("fitter pol1");
@@ -846,7 +849,7 @@ int main(int argc, char* argv[]) {
       
       TGraph grFeedCF_pb;
       grFeedCF_pb.SetName("GenuineCFSmearedLambda pb");
-      grFeedCF_pb.SetLineColor(kGreen + 5);
+      grFeedCF_pb.SetLineColor(kViolet);
       
       for (int i = 0; i < NumMomBins; ++i) {
         const float mom = LKModel->GetBinCenter(0, i);
@@ -868,7 +871,7 @@ int main(int argc, char* argv[]) {
         }
 
 
-      TCanvas *c_fitter_pb = new TCanvas();
+      /* TCanvas *c_fitter_pb = new TCanvas();
       h_HM->Draw("");
       fitter_pb->Draw("same");
       h_HM->GetXaxis()->SetRangeUser(0, 2500);
@@ -882,7 +885,7 @@ int main(int argc, char* argv[]) {
       c_fitter_pb->Show();
       c_fitter_pb->Print(TString::Format("/home/rossanafacen/Analysis/LambdaKaon/TestTask_nosph/Fit/%s/Pb_fit_%s.pdf", pair[i], pair[i]));
 
-
+ */
       fitter_pb->Write("fitter pb");
       gfitterfull_pb->Write("fitter full pb");
       
@@ -901,14 +904,15 @@ int main(int argc, char* argv[]) {
 
   auto Cf_tot = new TH1F("Cf_tot", "Cf_tot", nbins, h_HM_orig->GetXaxis()->GetBinLowEdge(1), h_HM_orig->GetXaxis()->GetBinUpEdge(nbins));
   //auto Cf_tot = (TH1F *)h_HM_orig->Clone("Cf_tot");
-  
+
   for (unsigned uBin = 0; uBin < nbins; uBin++) {    
     Cf_tot->SetBinContent(uBin + 1, Fit_mean[uBin]);
     Cf_tot->SetBinError(uBin + 1, Fit_StDev[uBin]);
 
     
   } 
-  
+
+  Cf_tot->Write("Lednicky fit");  
   outfile->Close();
   return 0;
 

@@ -165,17 +165,20 @@ double fit_functionLedn(double* x, double* par) {
   FITTER_DECOMLedn->GetCk()->SetPotPar(1, par[1]);//scattlen IM
   FITTER_DECOMLedn->GetCk()->SetPotPar(2, par[2]);//effrange
 
-  FITTER_DECOMLedn->GetChild(1)->GetCk()->SetPotPar(0, par[0]);//scatlen RE
-  FITTER_DECOMLedn->GetChild(1)->GetCk()->SetPotPar(1, par[1]);//scattlen IM
-  FITTER_DECOMLedn->GetChild(1)->GetCk()->SetPotPar(2, par[2]);//effrange
+  //cout<<FITTER_DECOMLedn->GetCk()->GetPotPar(2)<<endl;
 
-  FITTER_DECOMLedn->GetChild(2)->GetCk()->SetPotPar(0, par[0]);//scatlen RE
-  FITTER_DECOMLedn->GetChild(2)->GetCk()->SetPotPar(1, par[1]);//scattlen IM
-  FITTER_DECOMLedn->GetChild(2)->GetCk()->SetPotPar(2, par[2]);//effrange
+  FITTER_DECOMLedn->GetContribution("CkDec_Sig0")->GetCk()->SetPotPar(0, par[0]);//scatlen RE
+  FITTER_DECOMLedn->GetContribution("CkDec_Sig0")->GetCk()->SetPotPar(1, par[1]);//scattlen IM
+  FITTER_DECOMLedn->GetContribution("CkDec_Sig0")->GetCk()->SetPotPar(2, par[2]);//effrange
 
-  //FITTER_DECOMLedn->GetCk()->SetSourcePar(0, par[8]);//scatlen RE
-  //FITTER_DECOMLedn->GetCk()->GetPotPar(2, par[2]);//effrange
+  //cout<<FITTER_DECOMLedn->GetContribution("CkDec_Sig0")->GetCk()->GetPotPar(2)<<endl;
+
+   FITTER_DECOMLedn->GetContribution("CkDec_Xi0")->GetCk()->SetPotPar(0, par[0]);//scatlen RE
+  FITTER_DECOMLedn->GetContribution("CkDec_Xi0")->GetCk()->SetPotPar(1, par[1]);//scattlen IM
+  FITTER_DECOMLedn->GetContribution("CkDec_Xi0")->GetCk()->SetPotPar(2, par[2]);//effrange
   
+  //cout<<FITTER_DECOMLedn->GetContribution("CkDec_Xi0")->GetCk()->GetPotPar(2)<<endl;
+
   FITTER_DECOMLedn->Update(true, true);
 
   double yval= par[3]*FITTER_DECOMLedn->EvalCk(t)*(par[4]*fTemplate_MC_Common->Eval(t) + (1. - par[4])*fTemplate_MC_NonCommon->Eval(t) + (par[5]+par[6]*t+par[7]*t*t));
@@ -188,7 +191,7 @@ int main(int argc, char* argv[]) {
   const char* path_ancestors = "/home/rossanafacen/Analysis/LambdaKaon/TestTask_nosph/Common_Ancestors/Trains_MC";
   const char* path_CF = "/home/rossanafacen/Analysis/LambdaKaon/TestTask_nosph/Classical/Trains/HM/Norm 0.24-0.34";
 
-  double sourceRadius = 1.;
+  double sourceRadius = 1.1;
   double scattlenRE = 0.0;
   double scattlenIM = 0.0;
   double effrange = 0.0;
@@ -207,13 +210,15 @@ int main(int argc, char* argv[]) {
 
   //const char *pair[4] = {"LKPlus", "CF_ALKMin", "LKMin", "CF_ALKPlus"};
   const char *pair[2] = {"LKPlus+ALKMin", "LKMin+ALKPlus"};
-  
+   int i=0;
+
   double norm1[4] = {0.24, 0.50, 0.34, 0.80}; 
   double chargecombi[4] = {-1, -1, 1, 1}; 
+  const char* finalfolder[2] = {"Pb-Pb method/Prefit", "Pb-Pb method/Everything open"};
+  const char* path_Results = TString::Format("/home/rossanafacen/Analysis/LambdaKaon/TestTask_nosph/Fit/%s/%s", pair[i],finalfolder[0]);
 
-  int i=0;
-
-  auto outfile = new TFile(TString::Format("/home/rossanafacen/Analysis/LambdaKaon/TestTask_nosph/Fit/%s_Common_UnCommon.root", pair[0]), "RECREATE");   
+ 
+  auto outfile = new TFile(TString::Format("/home/rossanafacen/Analysis/LambdaKaon/TestTask_nosph/Fit/pb_model_%s.root", pair[0]), "RECREATE");   
 
   //CF of HM
   auto *file_CF = TFile::Open(TString::Format("%s/CFOutput_%s_00_norm_%.2f-%.2f.root", path_CF, pair[i], norm1[i], norm1[i+2])); //it opens the analysis results
@@ -276,9 +281,9 @@ int main(int argc, char* argv[]) {
   std::cout << "Lambda parameters\n";
 
   std::cout << "Genuine K-Lambda " << lPrim << "\n";
-  //std::cout << "K-Sigma0 -> K-Lambda " << lSigma << "\n";
+  std::cout << "K-Sigma0 -> K-Lambda " << lSigma << "\n";
   std::cout << "K-Xi- -> K-Lambda " << lCsicharged << "\n";
-  //std::cout << "K-Xi0 -> K-Lambda " << lCsi0 << "\n";
+  std::cout << "K-Xi0 -> K-Lambda " << lCsi0 << "\n";
   std::cout << "Flat in K-D+ " << lFlat << "\n";
   std::cout << "---------------------------------------------------\n";
   std::cout << "---------------------------------------------------\n";
@@ -525,7 +530,6 @@ CATS catsXi; //ask dimi if ok for K Xi- coulomb
       auto histDecayKinematicsSigma = (TH2F*) calibFile->Get("KSigma_KLambda"); //matrix for the feeddown  
       auto histDecayKinematicsXi0 = (TH2F*) calibFile->Get("KXi0_KLambda"); //matrix for the feeddown  
 
-
   auto DLM_Xi = new DLM_Ck(1, 0, catsXi);
   DLM_Xi->Update(); 
 
@@ -551,7 +555,7 @@ CATS catsXi; //ask dimi if ok for K Xi- coulomb
                                               Smear_transf_cut);  //TODO mom smearing matrix Ana results
   CkDec_Xi_Smeared.Update();  
 
-
+  
   FillCkGraph(DLM_Xi, CkDec_Xi_Smeared, grXiSmeared);
   outfile->cd();  
   grXiSmeared->Write("Xi Smeared");
@@ -591,7 +595,7 @@ CATS catsXi; //ask dimi if ok for K Xi- coulomb
                                               nullptr);  //TODO mom smearing matrix Ana results
   CkDec_Xi0.Update();  
 
- DLM_CkDecomposition LKFullCF("LK", 2, *LKModel, Smear_transf_cut);//TODO get mom smearing matrix
+ DLM_CkDecomposition LKFullCF("LK", 4, *LKModel, Smear_transf_cut);//TODO get mom smearing matrix
 
 
  LKFullCF.AddContribution(0, lCsicharged, DLM_CkDecomposition::cFeedDown,
@@ -604,17 +608,21 @@ CATS catsXi; //ask dimi if ok for K Xi- coulomb
 
  FITTER_DECOMLedn = &LKFullCF;
 
+  cout << "debug0" << endl;
+
   //total function, using model*background (we already did a prefit before)
   unsigned NumberOfFitPars = 8;            
-  TF1* fitter = new TF1("fitter", fit_functionLedn, 0, 250, NumberOfFitPars);            
+  TF1* fitter = new TF1("fitter", fit_functionLedn, 0, 500, NumberOfFitPars);            
   fitter->SetParameter(0, scattlenRE);
-  fitter->SetParLimits(0, scattlenRE - scattlenRE*2, scattlenRE + scattlenRE*2);
-  fitter->SetParameter(1, scattlenIM);            
-  fitter->SetParLimits(1, 0, scattlenIM + scattlenIM*2);
-  fitter->SetParameter(2, effrange);        
-  fitter->SetParLimits(2, effrange - effrange*2, effrange + effrange*2);
-  fitter->SetParameter(3, fPreFit_pol2->GetParameter(0)); //constant of normalization           
-  fitter->SetParameter(4, fPreFit_pol2->GetParameter(1)); //weight of common             
+  fitter->SetParameter(1, scattlenIM); 
+  fitter->SetParLimits(1, 0, 100);           
+  fitter->SetParameter(2, effrange);
+  fitter->SetParLimits(2, 0, 100);                  
+  fitter->SetParameter(3, fPreFit_pol2->GetParameter(0)); //constant of normalization 
+  //fitter->SetParLimits(3, fPreFit_pol2->GetParameter(0) - fPreFit_pol2->GetParError(0), fPreFit_pol2->GetParameter(0) + fPreFit_pol2->GetParError(0)); //constant of normalization 
+  fitter->SetParameter(4, fPreFit_pol2->GetParameter(1)); //weight of common 
+  //fitter->SetParLimits(4, fPreFit_pol2->GetParameter(1) - fPreFit_pol2->GetParError(1), fPreFit_pol2->GetParameter(1) + fPreFit_pol2->GetParError(1)); //constant of normalization 
+  fitter->SetParLimits(4, 0, 1);                  
   fitter->FixParameter(5, fPreFit_pol2->GetParameter(2)); //pol2  coefficients, to be kept fixed from the perfit    
   fitter->FixParameter(6, fPreFit_pol2->GetParameter(3));      
   fitter->FixParameter(7, fPreFit_pol2->GetParameter(4)); 
@@ -622,20 +630,33 @@ CATS catsXi; //ask dimi if ok for K Xi- coulomb
 
 
   cout << "\n---------------------------------\n Total fit \n--------------------------------\n" << endl;
-  int status= h_HM->Fit(fitter, "NR", "", 0, 250);
+  int status= h_HM->Fit(fitter, "NR", "", 0, 500);
 
-  outfile->cd();
+  double chi_fitter = fitter->GetChisquare()/fitter->GetNDF();
+  cout<<"Chi2 reduced: "<< chi_fitter <<endl;
 
-  TGraph* gfitterfull = new TGraph();
-  gfitterfull->SetLineColor(fitter->GetLineColor());
-  gfitterfull->SetLineWidth(2);
-  gfitterfull->SetLineStyle(6);
+  DLM_Ck *LKModelResult = new DLM_Ck(1, 3, NumMomBins, kMin, kMax,
+                                  ComplexLednicky_Singlet); //only scatt length?
+  LKModelResult->SetSourcePar(0, sourceRadius);
+  LKModelResult->SetPotPar(0, fitter->GetParameter(0));
+  LKModelResult->SetPotPar(1, fitter->GetParameter(1));
+  LKModelResult->SetPotPar(2, fitter->GetParameter(1));
+  LKModelResult->Update();
+  
+  auto  grGenuine_new = new TGraph();
+  FillCkGraph(LKModelResult, grGenuine_new);
 
-  for (int x = 0; x < 2500; x++){
-    double y = fitter->Eval(x);
-    gfitterfull->SetPoint(x,x,y);
-   }
-
+ 
+  TF1* fitter_bg = new TF1("fitter_bg", PreFit_pol2, 0, 2500, 5);
+  fitter_bg->FixParameter(0, fitter->GetParameter(3));
+  fitter_bg->FixParameter(1, fitter->GetParameter(4));
+  fitter_bg->FixParameter(2, fitter->GetParameter(5));
+  fitter_bg->FixParameter(3, fitter->GetParameter(6));
+  fitter_bg->FixParameter(4, fitter->GetParameter(7));
+  fitter_bg->SetParNames("N_d", "w_c", "a", "b", "c");
+  
+  fitter_bg->SetLineColor(fitter->GetLineColor());
+  fitter_bg->SetLineStyle(6);
 
  
   TCanvas *c_fitter = new TCanvas();
@@ -653,38 +674,55 @@ CATS catsXi; //ask dimi if ok for K Xi- coulomb
   c_fitter->Show();
   c_fitter->Print("/home/rossanafacen/Analysis/LambdaKaon/TestTask_nosph/Fit/Lednic_fit.pdf");
 
-
   Smear_Matrix->Write("Original Matrix");
   Smear_transf->Write("Matrix MeV transformed");
   Smear_transf_cut->Write("Matrix cut");
 
   fitter->Write("fitter");
-  gfitterfull->Write("fitter full");
+  fitter_bg->Write("fitter full");
   grXiCoulomb->Write();
   grXiSmeared->Write();
 
-  double scattlenRE_pb[2] = {-0.6, 0.27}; double scattlenRE_pb_err[] = {0.12, 0.12};
-  double scattlenIM_pb[] = {0.51, 0.40}; double  scattlenIM_pb_err[] = {0.15, 0.11}; 
-  double effrange_pb[] = {0.83, -5.23}; double effrange_pb_err[] = {0.47, 2.13}; 
+  double scattlenRE_pb[2] = {-0.6, 0.27}; double scattlenRE_pb_err[2] = {0.12, 0.12};
+  double scattlenIM_pb[2] = {0.51, 0.40}; double  scattlenIM_pb_err[2] = {0.15, 0.11}; 
+  double effrange_pb[2] = {0.83, -5.23}; double effrange_pb_err[2] = {0.47, 2.13}; 
 
-
+  double FitMin = 0.;
+  double FitMax = 500.;
   //fit with Pb parameters
-  TF1* fitter_pb = new TF1("fitter_pb", fit_functionLedn, 70, 250, NumberOfFitPars);            
+  TF1* fitter_pb = new TF1("fitter_pb", fit_functionLedn, FitMin, FitMax, NumberOfFitPars);            
   fitter_pb->FixParameter(0, scattlenRE_pb[i]);
-  fitter_pb->SetParLimits(0, scattlenRE_pb[i] - scattlenRE_pb_err[i], scattlenRE_pb [i] + scattlenRE_pb_err[i]);
+  //fitter_pb->SetParLimits(0, scattlenRE_pb[i] - scattlenRE_pb_err[i], scattlenRE_pb [i] + scattlenRE_pb_err[i]);
   fitter_pb->FixParameter(1, scattlenIM_pb[i]);            
-  fitter_pb->SetParLimits(1, scattlenIM_pb[i] -scattlenIM_pb_err[i], scattlenIM_pb[i] + scattlenIM_pb_err[i]);
+  //fitter_pb->SetParLimits(1, scattlenIM_pb[i] -scattlenIM_pb_err[i], scattlenIM_pb[i] + scattlenIM_pb_err[i]);
   fitter_pb->FixParameter(2, effrange_pb[i]);            
-  fitter_pb->SetParLimits(2, effrange_pb[i] - effrange_pb_err[i], effrange_pb[i] + effrange_pb_err[i]);
+  //fitter_pb->SetParLimits(2, effrange_pb[i] - effrange_pb_err[i], effrange_pb[i] + effrange_pb_err[i]);
   fitter_pb->SetParameter(3, fPreFit_pol2->GetParameter(0)); //constant of normalization           
-  fitter_pb->SetParameter(4, fPreFit_pol2->GetParameter(1)); //weight of common             
+  fitter_pb->SetParameter(4, fPreFit_pol2->GetParameter(1)); //weight of common 
+  fitter_pb->SetParLimits(4, 0, 1); //weight of common 
   fitter_pb->FixParameter(5, fPreFit_pol2->GetParameter(2)); //pol2  coefficients, to be kept fixed from the perfit    
   fitter_pb->FixParameter(6, fPreFit_pol2->GetParameter(3));      
   fitter_pb->FixParameter(7, fPreFit_pol2->GetParameter(4));
   fitter_pb->SetParNames("Re(f0)_pb","Im(f0)_pb","d0_pb", "N_d", "w_c", "a", "b", "c");
 
   fitter_pb->SetLineColor(kAzure+7);
- 
+  
+  h_HM->Fit(fitter_pb, "MR", "", FitMin, FitMax);
+
+  DLM_Ck *LKModelResultPb = new DLM_Ck(1, 3, NumMomBins, kMin, kMax,
+                                  ComplexLednicky_Singlet); //only scatt length?
+  LKModelResultPb->SetSourcePar(0, sourceRadius);
+  LKModelResultPb->SetPotPar(0, fitter_pb->GetParameter(0));
+  LKModelResultPb->SetPotPar(1, fitter_pb->GetParameter(1));
+  LKModelResultPb->SetPotPar(2, fitter_pb->GetParameter(1));
+  LKModelResultPb->Update();
+  
+  auto  grGenuine_new_Pb = new TGraph();
+  FillCkGraph(LKModelResultPb, grGenuine_new_Pb);
+
+  outfile->cd();
+  grGenuine_new_Pb->Write("grGenuine_new_Pb");
+  
   TGraph* gfitterfull_pb = new TGraph();
   gfitterfull_pb->SetLineColor(fitter_pb->GetLineColor());
   gfitterfull_pb->SetLineWidth(2);
@@ -695,7 +733,7 @@ CATS catsXi; //ask dimi if ok for K Xi- coulomb
     gfitterfull_pb->SetPoint(x,x,y);
     }
 
-
+  
   TCanvas *c_fitter_pb = new TCanvas();
   h_HM->Draw("");
   fitter_pb->Draw("same");
@@ -711,7 +749,21 @@ CATS catsXi; //ask dimi if ok for K Xi- coulomb
   c_fitter_pb->Show();
   c_fitter_pb->Print("/home/rossanafacen/Analysis/LambdaKaon/TestTask_nosph/Fit/Pb_fit.pdf");
 
+  double chi_fitter_pb = fitter_pb->GetChisquare()/fitter_pb->GetNDF();
+  cout<<"Chi2 reduced pb: "<< chi_fitter_pb <<endl;
 
+  std::fstream output5;
+  output5.open(Form("/home/rossanafacen/Analysis/LambdaKaon/TestTask_nosph/Fit/outputPAR_%s_Pb_everything_open.dat", pair[i]), std::fstream::in | std::fstream::out | std::fstream::app);
+  for(int i=0;i<NumberOfFitPars;i++){
+    output5 << fitter->GetParName(i)<<" "<<fitter->GetParameter(i)<<" "<<fitter->GetParError(i)<< "\n";
+  }
+
+  output5 << "--------------------------------\n";
+  output5 << "With Pb-Pb parameters \n";
+  for(int i=0;i<NumberOfFitPars;i++){
+    output5 << fitter->GetParName(i)<<" "<<fitter_pb->GetParameter(i)<<" "<<fitter_pb->GetParError(i)<< "\n";
+  }
+  output5.close();
   fitter_pb->Write("fitter pb");
   gfitterfull_pb->Write("fitter full pb");
   outfile->Close();

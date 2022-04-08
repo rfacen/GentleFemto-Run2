@@ -162,3 +162,9 @@ target_link_libraries(executeLambdaKaon DreamFunctions)
 
 add_executable(executeBenchmark ${PROJECT_SOURCE_DIR}/Scripts/ExecuteCFDreamBenchmark.C)
 target_link_libraries(executeBenchmark DreamFunctions)
+
+add_executable(executeLambdaKaonRossana ${PROJECT_SOURCE_DIR}/Scripts/ExecuteLambdaKaonRossana.C)
+target_link_libraries(executeLambdaKaonRossana DreamFunctions)
+
+add_executable(executeLKCommonAncestors ${PROJECT_SOURCE_DIR}/Scripts/ExecuteLKCommonAncestors.C)
+target_link_libraries(executeLKCommonAncestors DreamFunctions)

@@ -262,3 +262,12 @@ target_link_libraries(correctDminus tidyCATS -L${DREAM_LIB_PATH} DreamFunctions)
 
 add_executable(DmesonModels ${PROJECT_SOURCE_DIR}/Scripts/pDmeson/DmesonModels.C)
 target_link_libraries(DmesonModels tidyCATS -L${DREAM_LIB_PATH} DreamFunctions)
+
+add_executable(KLAna ${PROJECT_SOURCE_DIR}/Scripts/KLambda.C)
+target_link_libraries(KLAna tidyCATS -L${DREAM_LIB_PATH} DreamFunctions)
+
+add_executable(KLAnapb ${PROJECT_SOURCE_DIR}/Scripts/KLambda_pb.C)
+target_link_libraries(KLAnapb tidyCATS -L${DREAM_LIB_PATH} DreamFunctions)
+
+add_executable(KLAnaclas ${PROJECT_SOURCE_DIR}/Scripts/KLambda_noboot.C)
+target_link_libraries(KLAnaclas tidyCATS -L${DREAM_LIB_PATH} DreamFunctions)

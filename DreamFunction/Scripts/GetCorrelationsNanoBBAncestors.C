@@ -16,8 +16,8 @@ void GetCorrelationsNanoBBAncestors(const char* filename,
   std::cout << "norm1BB = " << norm1BB << std::endl;
   std::cout << "norm2BB = " << norm2BB << std::endl;
 
-  std::cout << "norm1BB = " << norm1BB << std::endl;
-  std::cout << "norm2BB = " << norm2BB << std::endl;
+  std::cout << "norm1BB = " << norm1BBar << std::endl;
+  std::cout << "norm2BB = " << norm2BBar << std::endl;
 
   // Double_t norm1=0.24;//default 0.2-0.4, 0.18-0.28 where CFs look flatter
   // Double_t norm2=0.34;// 0.24-0.34 from BB analysis
